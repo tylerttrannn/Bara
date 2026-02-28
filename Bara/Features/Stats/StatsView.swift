@@ -30,7 +30,13 @@ struct StatsView: View {
                                     .frame(height: 84)
                             }
 
-                            TrendPlaceholderChartView(trend: snapshot.trend)
+                            VStack(spacing: Spacing.xSmall) {
+                                DeviceActivityReport(.statsWeeklyTrendChart, filter: weeklyActivityFilter)
+                                    .frame(height: 210, alignment: .top)
+
+                                DeviceActivityReport(.statsMoodCalendar, filter: moodCalendarActivityFilter)
+                                    .frame(height: 200, alignment: .top)
+                            }
 
                             categorySection(snapshot.categoryBreakdown)
                         }
@@ -75,6 +81,17 @@ struct StatsView: View {
         let weekInterval = DateInterval(start: startOfRange, end: endOfToday)
 
         return DeviceActivityFilter(segment: .daily(during: weekInterval))
+    }
+
+    private var moodCalendarActivityFilter: DeviceActivityFilter {
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        let latestWeekStart = calendar.dateInterval(of: .weekOfYear, for: todayStart)?.start ?? todayStart
+        let oldestWeekStart = calendar.date(byAdding: .weekOfYear, value: -11, to: latestWeekStart) ?? latestWeekStart
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: todayStart) ?? Date()
+        let interval = DateInterval(start: oldestWeekStart, end: endOfToday)
+
+        return DeviceActivityFilter(segment: .daily(during: interval))
     }
 
     private func categorySection(_ categories: [CategoryUsage]) -> some View {

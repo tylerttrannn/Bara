@@ -22,6 +22,12 @@ struct BaraActivityReport: DeviceActivityReportExtension {
         StatsWeeklyAverageCardReport { value in
             StatsSummaryCardReportView(title: "Weekly avg", value: value)
         }
+        StatsWeeklyTrendReport { points in
+            StatsWeeklyTrendReportView(points: points)
+        }
+        StatsMoodCalendarReport { weeks in
+            StatsMoodCalendarReportView(weeks: weeks)
+        }
         // Add more reports here...
     }
 }
