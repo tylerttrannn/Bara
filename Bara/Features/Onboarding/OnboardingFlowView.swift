@@ -7,6 +7,8 @@ struct OnboardingFlowView: View {
     let onPickDistractions: () -> Void
     @State private var activitySelection = FamilyActivitySelection()
     @State private var isPickerPresented = false
+    @State private var showThresholdPage = false
+    @State private var thresholdMinutes = 30
 
     
     init(onFinish: @escaping () -> Void, onPickDistractions: @escaping () -> Void = {}) {
@@ -52,15 +54,6 @@ struct OnboardingFlowView: View {
 
                 pageDots
 
-                Button("Get Started") {
-                    onFinish()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(AppColors.accentGreen)
-                .opacity(viewModel.isLastPage ? 1 : 0)
-                .disabled(!viewModel.isLastPage)
-                .frame(height: 44)
-
                 Button("Select distracting apps") {
                     isPickerPresented = true
                 }
@@ -68,10 +61,10 @@ struct OnboardingFlowView: View {
                     isPresented: $isPickerPresented,
                     selection: $activitySelection
                 )
-                
-                .onChange(of: activitySelection) { newSelection in
+                .onChange(of: activitySelection) { _, newSelection in
                     if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
-                        onPickDistractions() // should move pages from this poitn 
+                        onPickDistractions()
+                        showThresholdPage = true
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -88,6 +81,16 @@ struct OnboardingFlowView: View {
             }
             .padding(Spacing.large)
         }
+        .fullScreenCover(isPresented: $showThresholdPage) {
+            ThresholdSelectionView(
+                thresholdMinutes: $thresholdMinutes,
+                onCancel: { showThresholdPage = false },
+                onContinue: {
+                    showThresholdPage = false
+                    onFinish()
+                }
+            )
+        }
     }
 
     private var pageDots: some View {
@@ -96,6 +99,69 @@ struct OnboardingFlowView: View {
                 Circle()
                     .fill(index == viewModel.pageIndex ? AppColors.accentGreen : Color.gray.opacity(0.35))
                     .frame(width: index == viewModel.pageIndex ? 12 : 8, height: index == viewModel.pageIndex ? 12 : 8)
+            }
+        }
+    }
+}
+
+private struct ThresholdSelectionView: View {
+    @Binding var thresholdMinutes: Int
+    let onCancel: () -> Void
+    let onContinue: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [AppColors.sandBackground, Color.white],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: Spacing.large) {
+                    Spacer()
+
+                    Image(systemName: "timer")
+                        .font(.system(size: 48, weight: .semibold))
+                        .foregroundStyle(AppColors.accentTeal)
+
+                    Text("Set Punishment Threshold")
+                        .font(AppTypography.title)
+                        .multilineTextAlignment(.center)
+
+                    Text("Choose how many minutes of distracting usage before Bara starts taking damage.")
+                        .font(AppTypography.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Spacing.large)
+
+                    Text("\(thresholdMinutes) minutes")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.accentGreen)
+
+                    Stepper("Threshold", value: $thresholdMinutes, in: 5...180, step: 5)
+                        .padding()
+                        .background(AppColors.cardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .padding(.horizontal, Spacing.large)
+
+                    Spacer()
+
+                    Button("Start Dashboard") {
+                        onContinue()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColors.accentGreen)
+                }
+                .padding(Spacing.large)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Back") {
+                        onCancel()
+                    }
+                }
             }
         }
     }

@@ -20,13 +20,8 @@ final class OnboardingViewModel: ObservableObject {
         ),
         Step(
             title: "Pick Distractions",
-            detail: "In the next phase you will select distracting app categories for tracking.",
+            detail: "Swipe here, choose distracting apps, then set your punishment threshold.",
             symbolName: "square.stack.3d.up.fill"
-        ),
-        Step(
-            title: "Check In Daily",
-            detail: "Watch mood and HP cards, then adjust habits to help your capybara recover.",
-            symbolName: "heart.text.square.fill"
         )
     ]
 
