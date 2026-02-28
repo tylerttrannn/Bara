@@ -6,7 +6,7 @@ struct BaraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView(service: container.petStateService)
+            AppLaunchContainerView(service: container.petStateService)
         }
     }
 }

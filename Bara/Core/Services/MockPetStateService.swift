@@ -1,12 +1,27 @@
 import Foundation
 
 final class MockPetStateService: PetStateProviding {
+    private enum DefaultsKey {
+        static let onboardingCompleted = "bara.onboarding.completed"
+    }
+
     private let lock = NSLock()
     private var settings: SettingsState
     private var distractionPreferences: DistractionPreferences
+    private let defaults: UserDefaults
 
-    init(settings: SettingsState = SettingsState(isOnboardingCompleted: false, notificationsEnabled: true, permissionGranted: true)) {
-        self.settings = settings
+    init(
+        settings: SettingsState = SettingsState(isOnboardingCompleted: false, notificationsEnabled: true, permissionGranted: true),
+        defaults: UserDefaults = .standard
+    ) {
+        self.defaults = defaults
+
+        var resolvedSettings = settings
+        if defaults.object(forKey: DefaultsKey.onboardingCompleted) != nil {
+            resolvedSettings.isOnboardingCompleted = defaults.bool(forKey: DefaultsKey.onboardingCompleted)
+        }
+
+        self.settings = resolvedSettings
         self.distractionPreferences = .default
     }
 
@@ -68,5 +83,6 @@ final class MockPetStateService: PetStateProviding {
         lock.lock()
         settings.isOnboardingCompleted = completed
         lock.unlock()
+        defaults.set(completed, forKey: DefaultsKey.onboardingCompleted)
     }
 }
