@@ -5,15 +5,22 @@ struct OnboardingFlowView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     let onFinish: () -> Void
     let onPickDistractions: () -> Void
+    let onRequestScreenTimePermission: () -> Void
     @State private var activitySelection = FamilyActivitySelection()
     @State private var isPickerPresented = false
+    @State private var showScreenTimePermissionInfo = false
     @State private var showThresholdPage = false
     @State private var thresholdMinutes = 30
 
     
-    init(onFinish: @escaping () -> Void, onPickDistractions: @escaping () -> Void = {}) {
+    init(
+        onFinish: @escaping () -> Void,
+        onPickDistractions: @escaping () -> Void = {},
+        onRequestScreenTimePermission: @escaping () -> Void = {}
+    ) {
         self.onFinish = onFinish
         self.onPickDistractions = onPickDistractions
+        self.onRequestScreenTimePermission = onRequestScreenTimePermission
     }
 
     var body: some View {
@@ -55,17 +62,7 @@ struct OnboardingFlowView: View {
                 pageDots
 
                 Button("Select distracting apps") {
-                    isPickerPresented = true
-                }
-                .familyActivityPicker(
-                    isPresented: $isPickerPresented,
-                    selection: $activitySelection
-                )
-                .onChange(of: activitySelection) { _, newSelection in
-                    if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
-                        onPickDistractions()
-                        showThresholdPage = true
-                    }
+                    showScreenTimePermissionInfo = true
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppColors.accentTeal)
@@ -80,6 +77,26 @@ struct OnboardingFlowView: View {
                 .padding(.top, Spacing.xSmall)
             }
             .padding(Spacing.large)
+        }
+        .familyActivityPicker(
+            isPresented: $isPickerPresented,
+            selection: $activitySelection
+        )
+        .onChange(of: activitySelection) { _, newSelection in
+            if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
+                onPickDistractions()
+                showThresholdPage = true
+            }
+        }
+        .fullScreenCover(isPresented: $showScreenTimePermissionInfo) {
+            ScreenTimePermissionInfoView(
+                onBack: { showScreenTimePermissionInfo = false },
+                onContinue: {
+                    onRequestScreenTimePermission()
+                    showScreenTimePermissionInfo = false
+                    isPickerPresented = true
+                }
+            )
         }
         .fullScreenCover(isPresented: $showThresholdPage) {
             ThresholdSelectionView(
@@ -99,6 +116,67 @@ struct OnboardingFlowView: View {
                 Circle()
                     .fill(index == viewModel.pageIndex ? AppColors.accentGreen : Color.gray.opacity(0.35))
                     .frame(width: index == viewModel.pageIndex ? 12 : 8, height: index == viewModel.pageIndex ? 12 : 8)
+            }
+        }
+    }
+}
+
+private struct ScreenTimePermissionInfoView: View {
+    let onBack: () -> Void
+    let onContinue: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [AppColors.sandBackground, Color.white],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: Spacing.large) {
+                    Spacer()
+
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.cardBackground)
+                            .frame(width: 82, height: 82)
+                            .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+
+                        Image(systemName: "checkmark.shield")
+                            .font(.system(size: 34, weight: .semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                    }
+
+                    Text("Screen Time Access Needed")
+                        .font(AppTypography.title)
+                        .multilineTextAlignment(.center)
+
+                    Text("To track distracting apps, you need to allow Screen Time access on the next prompt.")
+                        .font(AppTypography.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Spacing.large)
+
+                    Spacer()
+
+                    Button("Continue") {
+                        onContinue()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColors.accentTeal)
+                    .font(AppTypography.body)
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(Spacing.large)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Back") {
+                        onBack()
+                    }
+                }
             }
         }
     }
