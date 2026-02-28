@@ -27,13 +27,11 @@ struct StatsWeeklyAverageCardReport: DeviceActivityReportScene {
     let content: (String) -> StatsSummaryCardReportView
 
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> String {
-        let selection = SelectedActivityMetrics.loadSelection()
-        guard SelectedActivityMetrics.hasSelection(selection) else { return "0m" }
-
-        let totalDuration = await SelectedActivityMetrics.selectedDuration(
-            from: data,
-            selection: selection
-        )
+        let totalDuration = await data
+            .flatMap { $0.activitySegments }
+            .reduce(0) { partialResult, segment in
+                partialResult + segment.totalActivityDuration
+            }
         let averageDuration = totalDuration / 7.0
         return SelectedActivityMetrics.formatDuration(averageDuration)
     }
