@@ -6,9 +6,32 @@
 //
 
 import SwiftUI
+import ManagedSettings
+import FamilyControls
 
 struct TotalActivityView: View {
     let totalActivity: String
+    
+    let defaults = UserDefaults(suiteName: "group.Bara")
+    let alertStore = ManagedSettingsStore()
+      
+    func decodeSelection() -> FamilyActivitySelection? {
+        guard let defaults = defaults else {
+            return nil
+        }
+
+        guard let data = defaults.data(forKey: "bara") else {
+            return nil
+        }
+
+        let decoder = JSONDecoder()
+        do {
+            let selection = try decoder.decode(FamilyActivitySelection.self, from: data)
+            return selection
+        } catch {
+            return nil
+        }
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

@@ -1,4 +1,6 @@
 import SwiftUI
+import DeviceActivity
+import _DeviceActivity_SwiftUI
 
 struct StatsView: View {
     @StateObject private var viewModel: StatsViewModel
@@ -21,8 +23,11 @@ struct StatsView: View {
                     ScrollView {
                         VStack(spacing: Spacing.medium) {
                             HStack(spacing: Spacing.small) {
-                                UsageSummaryCardView(title: "Today", value: "\(snapshot.todayMinutes)m")
-                                UsageSummaryCardView(title: "Weekly avg", value: "\(snapshot.weeklyAverageMinutes)m")
+                                DeviceActivityReport(.statsTodayCard, filter: todayActivityFilter)
+                                    .frame(height: 84)
+
+                                DeviceActivityReport(.statsWeeklyAverageCard, filter: weeklyActivityFilter)
+                                    .frame(height: 84)
                             }
 
                             TrendPlaceholderChartView(trend: snapshot.trend)
@@ -51,6 +56,25 @@ struct StatsView: View {
         .task {
             await viewModel.load()
         }
+    }
+
+    private var todayActivityFilter: DeviceActivityFilter {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
+        let dayInterval = DateInterval(start: startOfDay, end: endOfDay)
+
+        return DeviceActivityFilter(segment: .daily(during: dayInterval))
+    }
+
+    private var weeklyActivityFilter: DeviceActivityFilter {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfRange = calendar.date(byAdding: .day, value: -6, to: startOfToday) ?? startOfToday
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? Date()
+        let weekInterval = DateInterval(start: startOfRange, end: endOfToday)
+
+        return DeviceActivityFilter(segment: .daily(during: weekInterval))
     }
 
     private func categorySection(_ categories: [CategoryUsage]) -> some View {

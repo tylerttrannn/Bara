@@ -9,12 +9,8 @@ final class AppContainer {
 
     static func live() -> AppContainer {
         let shouldSkipOnboarding = ProcessInfo.processInfo.arguments.contains("UITEST_SKIP_ONBOARDING")
-        let service = MockPetStateService(
-            settings: SettingsState(
-                isOnboardingCompleted: shouldSkipOnboarding,
-                notificationsEnabled: true,
-                permissionGranted: true
-            )
+        let service = LivePetStateService(
+            forceOnboardingCompleted: shouldSkipOnboarding ? true : nil
         )
 
         return AppContainer(petStateService: service)

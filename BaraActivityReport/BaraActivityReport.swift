@@ -16,6 +16,12 @@ struct BaraActivityReport: DeviceActivityReportExtension {
         TotalActivityReport { totalActivity in
             TotalActivityView(totalActivity: totalActivity)
         }
+        StatsTodayCardReport { value in
+            StatsSummaryCardReportView(title: "Today", value: value)
+        }
+        StatsWeeklyAverageCardReport { value in
+            StatsSummaryCardReportView(title: "Weekly avg", value: value)
+        }
         // Add more reports here...
     }
 }

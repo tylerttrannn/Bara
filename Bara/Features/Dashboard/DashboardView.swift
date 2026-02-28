@@ -23,13 +23,13 @@ struct DashboardView: View {
                     }
                 case .loaded(let snapshot):
                     ScrollView {
-                        VStack(spacing: Spacing.medium) {
+                        VStack(spacing: Spacing.small) {
                             PetHeroCardView(mood: snapshot.mood, description: snapshot.moodDescription)
 
                             HPProgressCardView(hp: snapshot.hp)
 
                             DeviceActivityReport(.totalActivity, filter: todayActivityFilter)
-                                .frame(height: 170)
+                                .frame(height: 120, alignment: .top)
                         }
                         .padding(Spacing.medium)
                     }
