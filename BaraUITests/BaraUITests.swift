@@ -1,41 +1,30 @@
-//
-//  BaraUITests.swift
-//  BaraUITests
-//
-//  Created by Tyler Tran on 2/27/26.
-//
-
 import XCTest
 
 final class BaraUITests: XCTestCase {
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testOnboardingAppearsOnFreshLaunch() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCTAssertTrue(app.buttons["Get Started"].waitForExistence(timeout: 3) || app.staticTexts["Meet Bara"].waitForExistence(timeout: 3))
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    func testTabsRenderWhenSkippingOnboarding() throws {
+        let app = XCUIApplication()
+        app.launchArguments.append("UITEST_SKIP_ONBOARDING")
+        app.launch()
+
+        XCTAssertTrue(app.tabBars.buttons["Dashboard"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.tabBars.buttons["Stats"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Settings"].exists)
+
+        app.tabBars.buttons["Stats"].tap()
+        XCTAssertTrue(app.navigationBars["Stats"].waitForExistence(timeout: 3))
     }
 }

@@ -1,17 +1,12 @@
-//
-//  BaraApp.swift
-//  Bara
-//
-//  Created by Tyler Tran on 2/27/26.
-//
-
 import SwiftUI
 
 @main
 struct BaraApp: App {
+    private let container = AppContainer.live()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootTabView(service: container.petStateService)
         }
     }
 }
