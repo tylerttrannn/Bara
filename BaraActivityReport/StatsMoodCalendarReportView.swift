@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import ImageIO
 
 enum BaraDailyMood: Hashable, Sendable {
     case unknown
@@ -63,6 +64,7 @@ struct MoodCalendarWeek: Identifiable, Hashable, Sendable {
 struct StatsMoodCalendarReportView: View {
     let weeks: [MoodCalendarWeek]
     @State private var selectedWeekIndex: Int
+    @Environment(\.displayScale) private var displayScale
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
     private let monthShortFormatter: DateFormatter = {
@@ -105,8 +107,11 @@ struct StatsMoodCalendarReportView: View {
 
     @ViewBuilder
     private func moodImage(for mood: BaraDailyMood) -> some View {
-        if let url = Bundle.main.url(forResource: mood.imageName, withExtension: "png"),
-           let uiImage = UIImage(contentsOfFile: url.path) {
+        if let uiImage = CapybaraImageLoader.image(
+            named: mood.imageName,
+            targetSize: 44,
+            scale: displayScale
+        ) {
             Image(uiImage: uiImage)
                 .resizable()
                 .interpolation(.high)
@@ -204,5 +209,41 @@ struct StatsMoodCalendarReportView: View {
         .background(Color.white.opacity(0.92))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
+        .onChange(of: weeks.count) { _, _ in
+            selectedWeekIndex = min(selectedWeekIndex, max(weeks.count - 1, 0))
+        }
+    }
+}
+
+private enum CapybaraImageLoader {
+    private static let cache = NSCache<NSString, UIImage>()
+
+    static func image(named name: String, targetSize: CGFloat, scale: CGFloat) -> UIImage? {
+        let cacheKey = "\(name)-\(Int(targetSize))-\(Int(scale * 100))" as NSString
+        if let cached = cache.object(forKey: cacheKey) {
+            return cached
+        }
+
+        guard let fileURL = Bundle.main.url(forResource: name, withExtension: "png"),
+              let source = CGImageSourceCreateWithURL(fileURL as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary) else {
+            return nil
+        }
+
+        let resolvedScale = max(scale, 1.0)
+        let maxPixel = max(Int(targetSize * resolvedScale), 32)
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel
+        ]
+
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+            return nil
+        }
+
+        let image = UIImage(cgImage: cgImage)
+        cache.setObject(image, forKey: cacheKey)
+        return image
     }
 }
