@@ -1,4 +1,6 @@
 import SwiftUI
+import DeviceActivity
+import _DeviceActivity_SwiftUI
 
 struct DashboardView: View {
     private let service: PetStateProviding
@@ -26,8 +28,8 @@ struct DashboardView: View {
 
                             HPProgressCardView(hp: snapshot.hp)
 
-                            distractingTimeCard(minutes: snapshot.distractingMinutesToday)
-
+                            DeviceActivityReport(.totalActivity, filter: todayActivityFilter)
+                                .frame(height: 170)
                         }
                         .padding(Spacing.medium)
                     }
@@ -62,22 +64,15 @@ struct DashboardView: View {
         }
     }
 
-    private func distractingTimeCard(minutes: Int) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            Text("Today's distracting time")
-                .font(AppTypography.caption)
-                .foregroundStyle(.secondary)
-            Text("\(minutes)m")
-                .font(AppTypography.title)
-            Text("Keep it low to cheer up Bara.")
-                .font(AppTypography.body)
-                .foregroundStyle(.secondary)
-        }
-        .padding(Spacing.medium)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
+    private var todayActivityFilter: DeviceActivityFilter {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
+        let dayInterval = DateInterval(start: startOfDay, end: endOfDay)
+
+        return DeviceActivityFilter(
+            segment: .daily(during: dayInterval)
+        )
     }
 }
 
