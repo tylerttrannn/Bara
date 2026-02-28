@@ -23,8 +23,6 @@ struct PetHeroCardView: View {
         }
         .padding(Spacing.large)
         .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 10, y: 5)
     }
 
     @ViewBuilder

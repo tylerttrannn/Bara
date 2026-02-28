@@ -19,7 +19,7 @@ struct StatsView: View {
                     ErrorStateView(message: message, buttonTitle: "Retry") {
                         Task { await viewModel.load() }
                     }
-                case .loaded(let snapshot):
+                case .loaded:
                     ScrollView {
                         VStack(spacing: Spacing.medium) {
                             HStack(spacing: Spacing.small) {
@@ -38,7 +38,8 @@ struct StatsView: View {
                                     .frame(height: 200, alignment: .top)
                             }
 
-                            categorySection(snapshot.categoryBreakdown)
+                            DeviceActivityReport(.statsTopApps, filter: weeklyActivityFilter)
+                                .frame(height: 178, alignment: .top)
                         }
                         .padding(Spacing.medium)
                     }
@@ -92,29 +93,6 @@ struct StatsView: View {
         let interval = DateInterval(start: oldestWeekStart, end: endOfToday)
 
         return DeviceActivityFilter(segment: .daily(during: interval))
-    }
-
-    private func categorySection(_ categories: [CategoryUsage]) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
-            Text("Category Breakdown")
-                .font(AppTypography.subtitle)
-
-            ForEach(categories) { category in
-                HStack {
-                    Text(category.name)
-                    Spacer()
-                    Text("\(category.minutes)m")
-                        .foregroundStyle(.secondary)
-                }
-                .font(AppTypography.body)
-                .padding(.vertical, 4)
-            }
-        }
-        .padding(Spacing.medium)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
 }
 

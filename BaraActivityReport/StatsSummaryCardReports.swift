@@ -1,6 +1,7 @@
 import DeviceActivity
 import ExtensionKit
 import Foundation
+import ManagedSettings
 import SwiftUI
 
 extension DeviceActivityReport.Context {
@@ -8,6 +9,7 @@ extension DeviceActivityReport.Context {
     static let statsWeeklyAverageCard = Self("Stats Weekly Average Card")
     static let statsWeeklyTrendChart = Self("Stats Weekly Trend Chart")
     static let statsMoodCalendar = Self("Stats Mood Calendar")
+    static let statsTopApps = Self("Stats Top Apps")
 }
 
 struct StatsTodayCardReport: DeviceActivityReportScene {
@@ -67,6 +69,15 @@ struct StatsMoodCalendarReport: DeviceActivityReportScene {
 
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> [MoodCalendarWeek] {
         await moodCalendarWeeks(from: data)
+    }
+}
+
+struct StatsTopAppsReport: DeviceActivityReportScene {
+    let context: DeviceActivityReport.Context = .statsTopApps
+    let content: ([TopAppUsageEntry]) -> StatsTopAppsReportView
+
+    func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> [TopAppUsageEntry] {
+        await topAppUsageEntries(from: data)
     }
 }
 
@@ -184,4 +195,68 @@ private func moodCalendarWeeks<S: AsyncSequence>(
     }
 
     return weeks
+}
+
+private func topAppUsageEntries<S: AsyncSequence>(
+    from data: S
+) async -> [TopAppUsageEntry] where S.Element == DeviceActivityData {
+    var durationsByAppID: [String: TimeInterval] = [:]
+    var namesByAppID: [String: String] = [:]
+    var tokensByAppID: [String: ApplicationToken] = [:]
+
+    do {
+        for try await activityData in data {
+            for await segment in activityData.activitySegments {
+                for await category in segment.categories {
+                    for await appActivity in category.applications {
+                        let app = appActivity.application
+                        let bundleID = app.bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let localizedName = app.localizedDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                        let appID: String
+                        if let bundleID, !bundleID.isEmpty {
+                            appID = bundleID
+                        } else if let localizedName, !localizedName.isEmpty {
+                            appID = localizedName
+                        } else {
+                            appID = "unknown.app"
+                        }
+
+                        let displayName: String
+                        if let localizedName, !localizedName.isEmpty {
+                            displayName = localizedName
+                        } else if let bundleID, !bundleID.isEmpty {
+                            displayName = bundleID
+                        } else {
+                            displayName = "Unknown App"
+                        }
+
+                        durationsByAppID[appID, default: 0] += appActivity.totalActivityDuration
+                        namesByAppID[appID] = displayName
+                        if let token = app.token {
+                            tokensByAppID[appID] = token
+                        }
+                    }
+                }
+            }
+        }
+    } catch {
+        return []
+    }
+
+    return durationsByAppID
+        .map { appID, duration in
+            TopAppUsageEntry(
+                id: appID,
+                token: tokensByAppID[appID],
+                name: namesByAppID[appID] ?? "Unknown App",
+                minutes: Int(duration / 60.0)
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.minutes == rhs.minutes {
+                return lhs.name < rhs.name
+            }
+            return lhs.minutes > rhs.minutes
+        }
 }

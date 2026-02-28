@@ -28,6 +28,9 @@ struct BaraActivityReport: DeviceActivityReportExtension {
         StatsMoodCalendarReport { weeks in
             StatsMoodCalendarReportView(weeks: weeks)
         }
+        StatsTopAppsReport { topApps in
+            StatsTopAppsReportView(topApps: topApps)
+        }
         // Add more reports here...
     }
 }

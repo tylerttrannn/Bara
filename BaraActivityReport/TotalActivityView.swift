@@ -48,8 +48,11 @@ struct TotalActivityView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.92))
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white.opacity(0.92))
+                .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
     }
 }

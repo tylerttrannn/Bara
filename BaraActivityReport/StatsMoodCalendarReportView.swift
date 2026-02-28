@@ -105,6 +105,35 @@ struct StatsMoodCalendarReportView: View {
         return "\(start) - \(end)"
     }
 
+    private var canGoPreviousWeek: Bool {
+        selectedWeekIndex > 0
+    }
+
+    private var canGoNextWeek: Bool {
+        selectedWeekIndex < max(weeks.count - 1, 0)
+    }
+
+    private func goToPreviousWeek() {
+        guard canGoPreviousWeek else { return }
+        selectedWeekIndex -= 1
+    }
+
+    private func goToNextWeek() {
+        guard canGoNextWeek else { return }
+        selectedWeekIndex += 1
+    }
+
+    private func handleHorizontalSwipe(translation: CGSize) {
+        guard abs(translation.width) > abs(translation.height),
+              abs(translation.width) > 28 else { return }
+
+        if translation.width < 0 {
+            goToNextWeek()
+        } else {
+            goToPreviousWeek()
+        }
+    }
+
     @ViewBuilder
     private func moodImage(for mood: BaraDailyMood) -> some View {
         if let uiImage = CapybaraImageLoader.image(
@@ -139,9 +168,7 @@ struct StatsMoodCalendarReportView: View {
 
                 HStack(spacing: 8) {
                     Button {
-                        if selectedWeekIndex > 0 {
-                            selectedWeekIndex -= 1
-                        }
+                        goToPreviousWeek()
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 12, weight: .semibold))
@@ -150,13 +177,11 @@ struct StatsMoodCalendarReportView: View {
                     .buttonStyle(.plain)
                     .background(Color.black.opacity(0.05))
                     .clipShape(Circle())
-                    .disabled(selectedWeekIndex == 0)
-                    .opacity(selectedWeekIndex == 0 ? 0.35 : 1)
+                    .disabled(!canGoPreviousWeek)
+                    .opacity(canGoPreviousWeek ? 1 : 0.35)
 
                     Button {
-                        if selectedWeekIndex < max(weeks.count - 1, 0) {
-                            selectedWeekIndex += 1
-                        }
+                        goToNextWeek()
                     } label: {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12, weight: .semibold))
@@ -165,8 +190,8 @@ struct StatsMoodCalendarReportView: View {
                     .buttonStyle(.plain)
                     .background(Color.black.opacity(0.05))
                     .clipShape(Circle())
-                    .disabled(selectedWeekIndex >= max(weeks.count - 1, 0))
-                    .opacity(selectedWeekIndex >= max(weeks.count - 1, 0) ? 0.35 : 1)
+                    .disabled(!canGoNextWeek)
+                    .opacity(canGoNextWeek ? 1 : 0.35)
                 }
             }
 
@@ -206,12 +231,22 @@ struct StatsMoodCalendarReportView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.92))
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white.opacity(0.92))
+                .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
         .onChange(of: weeks.count) { _, _ in
             selectedWeekIndex = min(selectedWeekIndex, max(weeks.count - 1, 0))
         }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    handleHorizontalSwipe(translation: value.translation)
+                }
+        )
     }
 }
 

@@ -16,8 +16,11 @@ struct StatsSummaryCardReportView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.92))
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.92))
+                .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
     }
 }
