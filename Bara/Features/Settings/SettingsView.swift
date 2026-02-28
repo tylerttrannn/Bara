@@ -32,6 +32,14 @@ struct SettingsView: View {
                         .tint(AppColors.accentTeal)
                     }
 
+                    SettingRowView(title: "Blocking Test", subtitle: "Start DeviceActivity monitoring now") {
+                        Button("Start test") {
+                            viewModel.startActivityLimitTest()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AppColors.accentGreen)
+                    }
+
                     SettingRowView(title: "About Bara", subtitle: "Hackathon MVP UI shell") {
                         Image(systemName: "info.circle")
                             .foregroundStyle(AppColors.accentTeal)

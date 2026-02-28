@@ -2,9 +2,13 @@ import SwiftUI
 import FamilyControls
 
 struct OnboardingFlowView: View {
+    private enum DefaultsKey {
+        static let appGroupSuite = "group.Bara"
+        static let thresholdMinutes = "bara.threshold.minutes"
+    }
+
     @StateObject private var viewModel = OnboardingViewModel()
     let onFinish: () -> Void
-    let onPickDistractions: () -> Void
     let onRequestScreenTimePermission: () -> Void
     @State private var activitySelection = FamilyActivitySelection()
     @State private var isPickerPresented = false
@@ -15,12 +19,13 @@ struct OnboardingFlowView: View {
     
     init(
         onFinish: @escaping () -> Void,
-        onPickDistractions: @escaping () -> Void = {},
         onRequestScreenTimePermission: @escaping () -> Void = {}
     ) {
         self.onFinish = onFinish
-        self.onPickDistractions = onPickDistractions
         self.onRequestScreenTimePermission = onRequestScreenTimePermission
+        let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
+        let savedThreshold = defaults.integer(forKey: DefaultsKey.thresholdMinutes)
+        _thresholdMinutes = State(initialValue: savedThreshold > 0 ? savedThreshold : 30)
     }
 
     var body: some View {
@@ -84,7 +89,7 @@ struct OnboardingFlowView: View {
         )
         .onChange(of: activitySelection) { _, newSelection in
             if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
-                onPickDistractions()
+                AppSelectionModel.setSelection(activitySelection)
                 showThresholdPage = true
             }
         }
@@ -103,6 +108,8 @@ struct OnboardingFlowView: View {
                 thresholdMinutes: $thresholdMinutes,
                 onCancel: { showThresholdPage = false },
                 onContinue: {
+                    let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
+                    defaults.set(thresholdMinutes, forKey: DefaultsKey.thresholdMinutes)
                     showThresholdPage = false
                     onFinish()
                 }

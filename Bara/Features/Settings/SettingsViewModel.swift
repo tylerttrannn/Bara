@@ -6,6 +6,7 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var settings: SettingsState
 
     private let service: PetStateProviding
+    private let scheduleLimits = ScheduleLimits()
 
     init(service: PetStateProviding) {
         self.service = service
@@ -23,5 +24,9 @@ final class SettingsViewModel: ObservableObject {
 
     func markPermission(enabled: Bool) {
         settings.permissionGranted = enabled
+    }
+
+    func startActivityLimitTest() {
+        scheduleLimits.startActivity()
     }
 }
