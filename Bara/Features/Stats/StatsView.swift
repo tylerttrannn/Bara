@@ -45,6 +45,8 @@ struct StatsView: View {
                 .ignoresSafeArea()
             )
             .navigationTitle("Stats")
+            .navigationBarTitleDisplayMode(.inline)
+
         }
         .task {
             await viewModel.load()

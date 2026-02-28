@@ -48,6 +48,8 @@ struct SettingsView: View {
                 .ignoresSafeArea()
             )
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+
         }
     }
 }

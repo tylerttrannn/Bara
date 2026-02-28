@@ -8,9 +8,7 @@ struct PetHeroCardView: View {
 
     var body: some View {
         VStack(spacing: Spacing.small) {
-            Image(systemName: mood.symbolName)
-                .font(.system(size: 56, weight: .semibold))
-                .foregroundStyle(mood.tint)
+            moodVisual
                 .offset(y: bob ? -4 : 4)
                 .animation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true), value: bob)
                 .onAppear { bob = true }
@@ -25,9 +23,27 @@ struct PetHeroCardView: View {
         }
         .padding(Spacing.large)
         .frame(maxWidth: .infinity)
-        .background(AppColors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 10, y: 5)
+    }
+
+    @ViewBuilder
+    private var moodVisual: some View {
+        if mood == .happy, UIImage(named: "very_happy") != nil {
+            Image("very_happy")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180, height: 180)
+        } else if mood == .neutral, UIImage(named: "neutral") != nil {
+            Image("neutral")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180, height: 180)
+        } else {
+            Image(systemName: mood.symbolName)
+                .font(.system(size: 56, weight: .semibold))
+                .foregroundStyle(mood.tint)
+        }
     }
 }
 

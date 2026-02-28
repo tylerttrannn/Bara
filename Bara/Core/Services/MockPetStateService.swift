@@ -13,7 +13,7 @@ final class MockPetStateService: PetStateProviding {
 
         return PetSnapshot(
             hp: 72,
-            mood: .neutral,
+            mood: .happy,
             distractingMinutesToday: 96,
             moodDescription: "Capy is okay, but could use a calmer day.",
             updatedAt: Date()

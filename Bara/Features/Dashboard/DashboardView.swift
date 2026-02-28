@@ -44,7 +44,8 @@ struct DashboardView: View {
                 )
                 .ignoresSafeArea()
             )
-            .navigationTitle("Dashboard")
+            .navigationTitle("Bara")
+            .navigationBarTitleDisplayMode(.inline) 
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
