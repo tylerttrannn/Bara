@@ -121,9 +121,11 @@ struct OnboardingFlowView: View {
     }
 }
 
+
 private struct ScreenTimePermissionInfoView: View {
     let onBack: () -> Void
     let onContinue: () -> Void
+    @StateObject var authManager = AuthorizationManager()
 
     var body: some View {
         NavigationStack {
@@ -159,17 +161,51 @@ private struct ScreenTimePermissionInfoView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, Spacing.large)
 
+                    Group {
+                        switch authManager.authorizationStatus {
+                        case .approved:
+                            Text("Authorization Granted")
+                                .font(AppTypography.body)
+                                .foregroundStyle(AppColors.accentGreen)
+                        case .denied:
+                            Text("Authorization denied. You can enable it in Settings and come back.")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        case .notDetermined:
+                            EmptyView()
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .padding(.horizontal, Spacing.large)
+
                     Spacer()
 
-                    Button("Continue") {
-                        onContinue()
+                    if authManager.authorizationStatus == .approved {
+                        Button("Continue") {
+                            onContinue()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AppColors.accentGreen)
+                        .font(AppTypography.body)
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        Button("Request Authorization") {
+                            Task {
+                                await authManager.requestAuthorization()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AppColors.accentTeal)
+                        .font(AppTypography.body)
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColors.accentTeal)
-                    .font(AppTypography.body)
-                    .frame(maxWidth: .infinity)
                 }
                 .padding(Spacing.large)
+            }
+            .task {
+                await authManager.checkAuthorization()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
