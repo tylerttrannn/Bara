@@ -10,7 +10,7 @@ final class OnboardingViewModel: ObservableObject {
         let symbolName: String
     }
 
-    @Published private(set) var pageIndex = 0
+    @Published var pageIndex = 0
 
     let steps: [Step] = [
         Step(

@@ -14,48 +14,42 @@ struct OnboardingFlowView: View {
             .ignoresSafeArea()
 
             VStack(spacing: Spacing.large) {
-                Spacer()
+                TabView(selection: $viewModel.pageIndex) {
+                    ForEach(Array(viewModel.steps.enumerated()), id: \.offset) { index, step in
+                        VStack(spacing: Spacing.large) {
+                            Spacer()
 
-                let step = viewModel.steps[viewModel.pageIndex]
-                Image(systemName: step.symbolName)
-                    .font(.system(size: 72, weight: .bold))
-                    .foregroundStyle(AppColors.accentTeal)
-                    .padding(Spacing.medium)
-                    .background(AppColors.cardBackground)
-                    .clipShape(Circle())
+                            Image("very_happy")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 220, height: 220)
 
-                Text(step.title)
-                    .font(AppTypography.title)
+                            Text(step.title)
+                                .font(AppTypography.title)
 
-                Text(step.detail)
-                    .font(AppTypography.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, Spacing.large)
+                            Text(step.detail)
+                                .font(AppTypography.body)
+                                .multilineTextAlignment(.center)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, Spacing.large)
+
+                            Spacer()
+                        }
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
 
                 pageDots
 
-                Spacer()
-
-                HStack(spacing: Spacing.small) {
-                    if viewModel.pageIndex > 0 {
-                        Button("Back") {
-                            viewModel.goBack()
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(AppColors.accentTeal)
-                    }
-
-                    Button(viewModel.isLastPage ? "Get Started" : "Continue") {
-                        if viewModel.isLastPage {
-                            onFinish()
-                        } else {
-                            viewModel.advance()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColors.accentGreen)
+                Button("Get Started") {
+                    onFinish()
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(AppColors.accentGreen)
+                .opacity(viewModel.isLastPage ? 1 : 0)
+                .disabled(!viewModel.isLastPage)
+                .frame(height: 44)
 
                 Button("Skip") {
                     onFinish()
