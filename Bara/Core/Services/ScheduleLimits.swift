@@ -11,10 +11,16 @@ import DeviceActivity
 import FamilyControls
 
 class ScheduleLimits {
+    private let defaults = UserDefaults(suiteName: "group.Bara")
+    private let thresholdMinutesKey = "bara.threshold.minutes"
+
     func startActivity(){
         let monitor = DeviceActivityCenter()
         let activityName = DeviceActivityName("baraLimit")
         let eventName = DeviceActivityEvent.Name("baraLimit")
+        let thresholdMinutes = max(defaults?.integer(forKey: thresholdMinutesKey) ?? 30, 1)
+        let thresholdHours = thresholdMinutes / 60
+        let thresholdRemainderMinutes = thresholdMinutes % 60
 
         let schedule = DeviceActivitySchedule(
             intervalStart: DateComponents(hour: 0, minute: 0),
@@ -24,7 +30,7 @@ class ScheduleLimits {
         
         let event = DeviceActivityEvent(
             applications : AppSelectionModel.getSelection().applicationTokens,
-            threshold : DateComponents(hour : 0, minute : 1)
+            threshold : DateComponents(hour: thresholdHours, minute: thresholdRemainderMinutes)
         )
    
         do {
@@ -33,7 +39,7 @@ class ScheduleLimits {
                 during : schedule,
                 events: [eventName: event]
             )
-            print("activity started")
+            print("activity started with threshold \(thresholdMinutes)m")
         } catch{
             print("error starting activity \(error.localizedDescription)")
         }
@@ -41,4 +47,3 @@ class ScheduleLimits {
 }
     
     
-
