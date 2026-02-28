@@ -3,9 +3,11 @@ import Foundation
 final class MockPetStateService: PetStateProviding {
     private let lock = NSLock()
     private var settings: SettingsState
+    private var distractionPreferences: DistractionPreferences
 
     init(settings: SettingsState = SettingsState(isOnboardingCompleted: false, notificationsEnabled: true, permissionGranted: true)) {
         self.settings = settings
+        self.distractionPreferences = .default
     }
 
     func fetchDashboardSnapshot() async throws -> PetSnapshot {
@@ -48,6 +50,18 @@ final class MockPetStateService: PetStateProviding {
         lock.lock()
         defer { lock.unlock() }
         return settings
+    }
+
+    func fetchDistractionPreferences() -> DistractionPreferences {
+        lock.lock()
+        defer { lock.unlock() }
+        return distractionPreferences
+    }
+
+    func saveDistractionPreferences(_ preferences: DistractionPreferences) {
+        lock.lock()
+        distractionPreferences = preferences
+        lock.unlock()
     }
 
     func setOnboardingCompleted(_ completed: Bool) {

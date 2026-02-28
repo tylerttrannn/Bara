@@ -1,8 +1,18 @@
 import SwiftUI
+import FamilyControls
 
 struct OnboardingFlowView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     let onFinish: () -> Void
+    let onPickDistractions: () -> Void
+    @State private var activitySelection = FamilyActivitySelection()
+    @State private var isPickerPresented = false
+
+    
+    init(onFinish: @escaping () -> Void, onPickDistractions: @escaping () -> Void = {}) {
+        self.onFinish = onFinish
+        self.onPickDistractions = onPickDistractions
+    }
 
     var body: some View {
         ZStack {
@@ -49,6 +59,25 @@ struct OnboardingFlowView: View {
                 .tint(AppColors.accentGreen)
                 .opacity(viewModel.isLastPage ? 1 : 0)
                 .disabled(!viewModel.isLastPage)
+                .frame(height: 44)
+
+                Button("Select distracting apps") {
+                    isPickerPresented = true
+                }
+                .familyActivityPicker(
+                    isPresented: $isPickerPresented,
+                    selection: $activitySelection
+                )
+                
+                .onChange(of: activitySelection) { newSelection in
+                    if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
+                        onPickDistractions() // should move pages from this poitn 
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppColors.accentTeal)
+                .opacity(viewModel.pageIndex == 1 ? 1 : 0)
+                .disabled(viewModel.pageIndex != 1)
                 .frame(height: 44)
 
                 Button("Skip") {

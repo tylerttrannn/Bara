@@ -66,6 +66,12 @@ private struct SuccessfulService: PetStateProviding {
         SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: true)
     }
 
+    func fetchDistractionPreferences() -> DistractionPreferences {
+        .default
+    }
+
+    func saveDistractionPreferences(_ preferences: DistractionPreferences) {}
+
     func setOnboardingCompleted(_ completed: Bool) {}
 }
 
@@ -83,6 +89,12 @@ private struct FailingService: PetStateProviding {
     func fetchSettingsState() -> SettingsState {
         SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: false)
     }
+
+    func fetchDistractionPreferences() -> DistractionPreferences {
+        .default
+    }
+
+    func saveDistractionPreferences(_ preferences: DistractionPreferences) {}
 
     func setOnboardingCompleted(_ completed: Bool) {}
 }

@@ -1,9 +1,12 @@
 import SwiftUI
 
 struct DashboardView: View {
+    private let service: PetStateProviding
     @StateObject private var viewModel: DashboardViewModel
+    @State private var showDistractionSetup = false
 
     init(service: PetStateProviding) {
+        self.service = service
         _viewModel = StateObject(wrappedValue: DashboardViewModel(service: service))
     }
 
@@ -26,7 +29,10 @@ struct DashboardView: View {
 
                             distractingTimeCard(minutes: snapshot.distractingMinutesToday)
 
-                            QuickActionsRowView(onEditDistractions: {}, onPetCare: {})
+                            QuickActionsRowView(
+                                onEditDistractions: { showDistractionSetup = true },
+                                onPetCare: {}
+                            )
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(Spacing.medium)
@@ -55,6 +61,11 @@ struct DashboardView: View {
                     }
                     .accessibilityIdentifier("dashboard.refresh")
                 }
+            }
+        }
+        .sheet(isPresented: $showDistractionSetup) {
+            NavigationStack {
+                DistractionSetupView(service: service)
             }
         }
         .task {
