@@ -25,21 +25,27 @@ struct StatsView: View {
                             HStack(spacing: Spacing.small) {
                                 DeviceActivityReport(.statsTodayCard, filter: todayActivityFilter)
                                     .frame(height: 84)
+                                    .allowsHitTesting(false)
 
                                 DeviceActivityReport(.statsWeeklyAverageCard, filter: weeklyActivityFilter)
                                     .frame(height: 84)
+                                    .allowsHitTesting(false)
                             }
 
                             VStack(spacing: Spacing.xSmall) {
                                 DeviceActivityReport(.statsWeeklyTrendChart, filter: weeklyActivityFilter)
                                     .frame(height: 210, alignment: .top)
+                                    .allowsHitTesting(false)
 
                                 DeviceActivityReport(.statsMoodCalendar, filter: moodCalendarActivityFilter)
                                     .frame(height: 200, alignment: .top)
+                                    .allowsHitTesting(true)
                             }
 
                             DeviceActivityReport(.statsTopApps, filter: weeklyActivityFilter)
                                 .frame(height: 178, alignment: .top)
+                                .allowsHitTesting(false)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         }
                         .padding(Spacing.medium)
                     }

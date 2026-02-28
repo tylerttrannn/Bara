@@ -124,8 +124,9 @@ struct StatsMoodCalendarReportView: View {
     }
 
     private func handleHorizontalSwipe(translation: CGSize) {
-        guard abs(translation.width) > abs(translation.height),
-              abs(translation.width) > 28 else { return }
+        // Keep horizontal swipe intentional so vertical page scrolling stays smooth.
+        guard abs(translation.width) > abs(translation.height) * 1.35,
+              abs(translation.width) > 36 else { return }
 
         if translation.width < 0 {
             goToNextWeek()
@@ -194,6 +195,13 @@ struct StatsMoodCalendarReportView: View {
                     .opacity(canGoNextWeek ? 1 : 0.35)
                 }
             }
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 22)
+                    .onEnded { value in
+                        handleHorizontalSwipe(translation: value.translation)
+                    }
+            )
 
             if let currentWeek {
                 LazyVGrid(columns: columns, spacing: 10) {
@@ -240,13 +248,6 @@ struct StatsMoodCalendarReportView: View {
         .onChange(of: weeks.count) { _, _ in
             selectedWeekIndex = min(selectedWeekIndex, max(weeks.count - 1, 0))
         }
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    handleHorizontalSwipe(translation: value.translation)
-                }
-        )
     }
 }
 
