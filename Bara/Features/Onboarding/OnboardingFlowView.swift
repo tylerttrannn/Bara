@@ -108,6 +108,7 @@ private struct ThresholdSelectionView: View {
     @Binding var thresholdMinutes: Int
     let onCancel: () -> Void
     let onContinue: () -> Void
+    private let quickPicks = [15, 30, 45, 60]
 
     var body: some View {
         NavigationStack {
@@ -120,39 +121,70 @@ private struct ThresholdSelectionView: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: Spacing.large) {
-                    Spacer()
+                    VStack(spacing: Spacing.small) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.cardBackground)
+                                .frame(width: 78, height: 78)
+                                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
 
-                    Image(systemName: "timer")
-                        .font(.system(size: 48, weight: .semibold))
-                        .foregroundStyle(AppColors.accentTeal)
+                            Image(systemName: "timer")
+                                .font(.system(size: 32, weight: .semibold))
+                                .foregroundStyle(AppColors.accentTeal)
+                        }
 
-                    Text("Set Punishment Threshold")
-                        .font(AppTypography.title)
-                        .multilineTextAlignment(.center)
+                        Text("Set Punishment Threshold")
+                            .font(AppTypography.title)
+                            .multilineTextAlignment(.center)
 
-                    Text("Choose how many minutes of distracting usage before Bara starts taking damage.")
-                        .font(AppTypography.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Spacing.large)
+                        Text("How long can distracting usage go before Bara starts taking damage?")
+                            .font(AppTypography.body)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, Spacing.small)
+                    }
 
-                    Text("\(thresholdMinutes) minutes")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.accentGreen)
+                    VStack(alignment: .leading, spacing: Spacing.medium) {
+                        Text("Current threshold")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(.secondary)
 
-                    Stepper("Threshold", value: $thresholdMinutes, in: 5...180, step: 5)
-                        .padding()
-                        .background(AppColors.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .padding(.horizontal, Spacing.large)
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text("\(thresholdMinutes)")
+                                .font(.system(size: 52, weight: .bold, design: .rounded))
+                                .foregroundStyle(AppColors.accentGreen)
+                            Text("min")
+                                .font(AppTypography.subtitle)
+                                .foregroundStyle(.secondary)
+                        }
 
-                    Spacer()
+                        Stepper("Adjust in 5-minute steps", value: $thresholdMinutes, in: 5...180, step: 5)
+                            .font(AppTypography.body)
+
+                        HStack(spacing: 10) {
+                            ForEach(quickPicks, id: \.self) { minutes in
+                                Button("\(minutes)m") {
+                                    thresholdMinutes = minutes
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(thresholdMinutes == minutes ? AppColors.accentGreen : AppColors.accentTeal.opacity(0.55))
+                            }
+                        }
+                    }
+                    .padding(Spacing.large)
+                    .background(AppColors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 12, y: 5)
+
+                    Spacer(minLength: 0)
 
                     Button("Start Dashboard") {
                         onContinue()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(AppColors.accentGreen)
+                    .font(AppTypography.body)
+                    .frame(maxWidth: .infinity)
                 }
                 .padding(Spacing.large)
             }

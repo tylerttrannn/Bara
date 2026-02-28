@@ -20,7 +20,7 @@ final class OnboardingViewModel: ObservableObject {
         ),
         Step(
             title: "Pick Distractions",
-            detail: "Swipe here, choose distracting apps, then set your punishment threshold.",
+            detail: "Choose the apps that distract you the most and set your threshold.",
             symbolName: "square.stack.3d.up.fill"
         )
     ]
