@@ -45,7 +45,7 @@ struct StatsView: View {
                             }
 
                             DeviceActivityReport(.statsTopApps, filter: weeklyActivityFilter)
-                                .frame(height: 198, alignment: .top)
+                                .frame(height: 220, alignment: .top)
                                 .allowsHitTesting(false)
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         }
