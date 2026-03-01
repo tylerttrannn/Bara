@@ -272,11 +272,11 @@ private struct ThresholdSelectionView: View {
                                 .foregroundStyle(AppColors.accentTeal)
                         }
 
-                        Text("Set Punishment Threshold")
+                        Text("Set App Threshold")
                             .font(AppTypography.title)
                             .multilineTextAlignment(.center)
 
-                        Text("How long can distracting usage go before Bara starts taking damage?")
+                        Text("Set how many minutes are allowed before selected apps are blocked.")
                             .font(AppTypography.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
