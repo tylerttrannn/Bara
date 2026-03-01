@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4037DA292F5423D400D07103 /* Toasts in Frameworks */ = {isa = PBXBuildFile; productRef = 4037DA282F5423D400D07103 /* Toasts */; };
 		4093DB732F53D3EE00719F7E /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40D4924A2F52C3D600930B46 /* ManagedSettings.framework */; };
 		4093DB752F53D3EE00719F7E /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4093DB742F53D3EE00719F7E /* ManagedSettingsUI.framework */; };
 		4093DB7D2F53D3EE00719F7E /* BaraShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4093DB722F53D3EE00719F7E /* BaraShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -197,6 +198,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4037DA292F5423D400D07103 /* Toasts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +329,7 @@
 			);
 			name = Bara;
 			packageProductDependencies = (
+				4037DA282F5423D400D07103 /* Toasts */,
 			);
 			productName = Bara;
 			productReference = 40C8E3C72F52C2B500F334BD /* Bara.app */;
@@ -488,6 +491,9 @@
 			);
 			mainGroup = 40C8E3BE2F52C2B500F334BD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4037DA272F5423D400D07103 /* XCRemoteSwiftPackageReference "swiftui-toasts" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40C8E3C82F52C2B500F334BD /* Products */;
 			projectDirPath = "";
@@ -1225,6 +1231,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4037DA272F5423D400D07103 /* XCRemoteSwiftPackageReference "swiftui-toasts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sunghyun-k/swiftui-toasts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4037DA282F5423D400D07103 /* Toasts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4037DA272F5423D400D07103 /* XCRemoteSwiftPackageReference "swiftui-toasts" */;
+			productName = Toasts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 40C8E3BF2F52C2B500F334BD /* Project object */;
 }
