@@ -29,7 +29,6 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var buddyProfile: BuddyProfile?
     @Published private(set) var incomingPendingRequest: BorrowRequest?
     @Published private(set) var latestOutgoingRequest: BorrowRequest?
-    @Published private(set) var approvalsUsedToday: Int = 0
 
     @Published var selectedRequestMinutes: Int = BorrowRequestDraft.allowedMinutes[2]
     @Published var requestNote: String = "" {
@@ -119,7 +118,6 @@ final class DashboardViewModel: ObservableObject {
             async let profileTask = buddyService.fetchMyProfile()
             async let incomingTask = buddyService.fetchLatestIncomingPendingRequest()
             async let outgoingTask = buddyService.fetchLatestOutgoingRequest()
-            async let approvalsTask = buddyService.fetchApprovalsUsedToday()
 
             let profile = try await profileTask
             buddyProfile = profile
@@ -127,7 +125,6 @@ final class DashboardViewModel: ObservableObject {
 
             incomingPendingRequest = try await incomingTask
             latestOutgoingRequest = try await outgoingTask
-            approvalsUsedToday = try await approvalsTask
 
             applyAllowanceIfApprovedOutgoingExists()
         } catch {
@@ -294,11 +291,6 @@ final class DashboardViewModel: ObservableObject {
 
         if pendingOutgoingRequest != nil {
             requestDisabledReason = "You already have a pending outgoing request."
-            return
-        }
-
-        if approvalsUsedToday >= 2 {
-            requestDisabledReason = "Daily cap reached (2 approved requests today)."
             return
         }
 

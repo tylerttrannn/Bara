@@ -52,7 +52,7 @@ struct StatsWeeklyTrendReportView: View {
                             .frame(height: 11)
 
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(red: 0.92, green: 0.62, blue: 0.34))
+                            .fill(Color(red: 0.90, green: 0.66, blue: 0.68))
                             .frame(width: 24, height: barHeight(for: point.minutes))
 
                         Text(point.dayLabel)

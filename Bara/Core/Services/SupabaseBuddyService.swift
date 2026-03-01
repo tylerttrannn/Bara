@@ -28,18 +28,6 @@ struct SupabaseConfig {
 }
 
 final class SupabaseBuddyService: BuddyProviding {
-    private struct DailyBorrowLimitRow: Codable {
-        let userID: UUID
-        let dayKey: String
-        var approvalsUsed: Int
-
-        enum CodingKeys: String, CodingKey {
-            case userID = "user_id"
-            case dayKey = "day_key"
-            case approvalsUsed = "approvals_used"
-        }
-    }
-
     private struct PostgrestErrorPayload: Decodable {
         let message: String?
         let details: String?
@@ -120,11 +108,6 @@ final class SupabaseBuddyService: BuddyProviding {
 
         if try await fetchLatestOutgoingPendingRequest() != nil {
             throw BuddyServiceError.outgoingRequestAlreadyPending
-        }
-
-        let approvalsUsed = try await fetchApprovalsUsedToday()
-        if approvalsUsed >= 2 {
-            throw BuddyServiceError.dailyApprovalCapReached
         }
 
         let now = Date()
@@ -251,27 +234,15 @@ final class SupabaseBuddyService: BuddyProviding {
             throw BuddyServiceError.requestExpired
         }
 
-        if decision == .approve {
-            let used = try await approvalsUsedToday(for: current.requesterID)
-            if used >= 2 {
-                throw BuddyServiceError.dailyApprovalCapReached
-            }
-        }
-
         var updated = try await patchRequestStatus(id: current.id, status: decision.resultingStatus)
 
         if decision == .approve {
-            try await incrementApprovalsUsed(for: current.requesterID)
             try await applyApprovalEffects(requesterID: current.requesterID, buddyID: current.buddyID)
         }
 
         updated.requesterDisplayName = try await fetchDisplayName(for: updated.requesterID)
         updated.buddyDisplayName = me.displayName
         return updated
-    }
-
-    func fetchApprovalsUsedToday() async throws -> Int {
-        try await approvalsUsedToday(for: config.userID)
     }
 
     private func observe(poll: @escaping () async throws -> BorrowRequest?) -> AsyncStream<Result<BorrowRequest?, Error>> {
@@ -411,61 +382,6 @@ final class SupabaseBuddyService: BuddyProviding {
         return request
     }
 
-    private func approvalsUsedToday(for userID: UUID) async throws -> Int {
-        let dayKey = Self.dayKey(for: Date())
-
-        let query: [URLQueryItem] = [
-            URLQueryItem(name: "select", value: "user_id,day_key,approvals_used"),
-            URLQueryItem(name: "user_id", value: "eq.\(userID.uuidString)"),
-            URLQueryItem(name: "day_key", value: "eq.\(dayKey)"),
-            URLQueryItem(name: "limit", value: "1")
-        ]
-
-        let data = try await perform(method: "GET", path: "daily_borrow_limits", query: query)
-        return try decode([DailyBorrowLimitRow].self, from: data).first?.approvalsUsed ?? 0
-    }
-
-    private func incrementApprovalsUsed(for userID: UUID) async throws {
-        let dayKey = Self.dayKey(for: Date())
-        let current = try await approvalsUsedToday(for: userID)
-
-        if current >= 2 {
-            throw BuddyServiceError.dailyApprovalCapReached
-        }
-
-        let next = current + 1
-
-        if current == 0 {
-            let body: [String: Any] = [
-                "user_id": userID.uuidString,
-                "day_key": dayKey,
-                "approvals_used": next
-            ]
-
-            _ = try await perform(
-                method: "POST",
-                path: "daily_borrow_limits",
-                query: [URLQueryItem(name: "on_conflict", value: "user_id,day_key")],
-                body: body,
-                prefer: "return=representation,resolution=merge-duplicates"
-            )
-        } else {
-            let body: [String: Any] = ["approvals_used": next]
-            let query: [URLQueryItem] = [
-                URLQueryItem(name: "user_id", value: "eq.\(userID.uuidString)"),
-                URLQueryItem(name: "day_key", value: "eq.\(dayKey)")
-            ]
-
-            _ = try await perform(
-                method: "PATCH",
-                path: "daily_borrow_limits",
-                query: query,
-                body: body,
-                prefer: "return=representation"
-            )
-        }
-    }
-
     private func applyApprovalEffects(requesterID: UUID, buddyID: UUID) async throws {
         if var requester = try await fetchProfile(id: requesterID) {
             requester.points = max(0, requester.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
@@ -555,14 +471,6 @@ final class SupabaseBuddyService: BuddyProviding {
         }
 
         return data
-    }
-
-    private static func dayKey(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.calendar = Calendar.current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
     }
 
     private static func generateInviteCode() -> String {

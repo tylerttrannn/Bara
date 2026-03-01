@@ -4,13 +4,6 @@ final class LocalBuddyService: BuddyProviding {
     private enum DefaultsKey {
         static let profile = "bara.localbuddy.profile"
         static let requests = "bara.localbuddy.requests"
-        static let dailyLimits = "bara.localbuddy.dailyLimits"
-    }
-
-    private struct DailyLimitRow: Codable {
-        let userID: UUID
-        let dayKey: String
-        var approvalsUsed: Int
     }
 
     private let defaults: UserDefaults
@@ -74,11 +67,6 @@ final class LocalBuddyService: BuddyProviding {
 
         if try await fetchLatestOutgoingPendingRequest() != nil {
             throw BuddyServiceError.outgoingRequestAlreadyPending
-        }
-
-        let approvalsUsed = try await fetchApprovalsUsedToday()
-        if approvalsUsed >= 2 {
-            throw BuddyServiceError.dailyApprovalCapReached
         }
 
         let now = Date()
@@ -181,8 +169,6 @@ final class LocalBuddyService: BuddyProviding {
         requests[index] = updated
 
         if decision == .approve {
-            try incrementApprovalsUsed(for: request.requesterID)
-
             var meUpdated = me
             meUpdated.points += AppGroupDefaults.borrowApprovalBuddyPointsReward
             saveProfile(meUpdated)
@@ -198,11 +184,6 @@ final class LocalBuddyService: BuddyProviding {
 
         saveRequests(requests)
         return updated
-    }
-
-    func fetchApprovalsUsedToday() async throws -> Int {
-        let me = try await fetchMyProfile()
-        return approvalsUsed(for: me.id)
     }
 
     private func observe(poll: @escaping () async throws -> BorrowRequest?) -> AsyncStream<Result<BorrowRequest?, Error>> {
@@ -253,45 +234,6 @@ final class LocalBuddyService: BuddyProviding {
         AppGroupDefaults.setCachedPointsValue(profile.points, defaults: defaults)
     }
 
-    private func loadDailyLimits() -> [DailyLimitRow] {
-        guard let data = defaults.data(forKey: DefaultsKey.dailyLimits),
-              let decoded = try? decoder.decode([DailyLimitRow].self, from: data) else {
-            return []
-        }
-
-        return decoded
-    }
-
-    private func saveDailyLimits(_ rows: [DailyLimitRow]) {
-        guard let encoded = try? encoder.encode(rows) else {
-            return
-        }
-
-        defaults.set(encoded, forKey: DefaultsKey.dailyLimits)
-    }
-
-    private func approvalsUsed(for userID: UUID) -> Int {
-        let dayKey = Self.dayKey(for: Date())
-        let row = loadDailyLimits().first(where: { $0.userID == userID && $0.dayKey == dayKey })
-        return row?.approvalsUsed ?? 0
-    }
-
-    private func incrementApprovalsUsed(for userID: UUID) throws {
-        let dayKey = Self.dayKey(for: Date())
-        var rows = loadDailyLimits()
-
-        if let index = rows.firstIndex(where: { $0.userID == userID && $0.dayKey == dayKey }) {
-            if rows[index].approvalsUsed >= 2 {
-                throw BuddyServiceError.dailyApprovalCapReached
-            }
-            rows[index].approvalsUsed += 1
-        } else {
-            rows.append(DailyLimitRow(userID: userID, dayKey: dayKey, approvalsUsed: 1))
-        }
-
-        saveDailyLimits(rows)
-    }
-
     private func expirePendingRequestsIfNeeded(_ requests: inout [BorrowRequest]) {
         let now = Date()
 
@@ -322,14 +264,6 @@ final class LocalBuddyService: BuddyProviding {
     private func syncLocalCaches(from profile: BuddyProfile) {
         AppGroupDefaults.setCachedHealthValue(profile.health, defaults: defaults)
         AppGroupDefaults.setCachedPointsValue(profile.points, defaults: defaults)
-    }
-
-    private static func dayKey(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.calendar = Calendar.current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
     }
 
     private static func generateInviteCode() -> String {

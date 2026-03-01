@@ -96,7 +96,6 @@ struct DashboardView: View {
                 selectedMinutes: viewModel.selectedRequestMinutes,
                 note: viewModel.requestNote,
                 inviteCode: viewModel.inviteCode,
-                approvalsUsedToday: viewModel.approvalsUsedToday,
                 pendingOutgoingRequest: viewModel.pendingOutgoingRequest,
                 submitState: viewModel.requestSubmitState,
                 pairState: viewModel.pairSubmitState,

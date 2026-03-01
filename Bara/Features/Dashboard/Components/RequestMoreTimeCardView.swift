@@ -5,7 +5,6 @@ struct RequestMoreTimeCardView: View {
     let selectedMinutes: Int
     let note: String
     let inviteCode: String
-    let approvalsUsedToday: Int
     let pendingOutgoingRequest: BorrowRequest?
     let submitState: DashboardViewModel.AsyncActionState
     let pairState: DashboardViewModel.AsyncActionState
@@ -75,12 +74,6 @@ struct RequestMoreTimeCardView: View {
                     Text("\(note.count)/\(BorrowRequestDraft.maxNoteLength)")
                         .font(AppTypography.caption)
                         .foregroundStyle(note.count > BorrowRequestDraft.maxNoteLength ? Color.red : Color.secondary)
-
-                    Spacer()
-
-                    Text("Used today: \(approvalsUsedToday)/2")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
 
