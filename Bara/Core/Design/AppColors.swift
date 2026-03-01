@@ -1,7 +1,8 @@
 import SwiftUI
 
 enum AppColors {
-    static let sandBackground = Color(red: 0.98, green: 0.95, blue: 0.88)
+    static let sandBackground = Color(red: 0.95, green: 0.95, blue: 0.92)
+    static let sandBackgroundBottom = Color(red: 0.92, green: 0.93, blue: 0.90)
     static let cardBackground = Color.white.opacity(0.92)
     static let accentGreen = Color(red: 0.19, green: 0.58, blue: 0.42)
     static let accentTeal = Color(red: 0.15, green: 0.62, blue: 0.65)

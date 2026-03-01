@@ -11,7 +11,7 @@ struct PreviewContainer<Content: View>: View {
         content
             .background(
                 LinearGradient(
-                    colors: [AppColors.sandBackground, Color.white],
+                    colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                     startPoint: .top,
                     endPoint: .bottom
                 )

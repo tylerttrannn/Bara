@@ -31,7 +31,7 @@ struct OnboardingFlowView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [AppColors.sandBackground, Color.white],
+                colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -138,7 +138,7 @@ private struct ScreenTimePermissionInfoView: View {
         NavigationStack {
             ZStack {
                 LinearGradient(
-                    colors: [AppColors.sandBackground, Color.white],
+                    colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -235,7 +235,7 @@ private struct ThresholdSelectionView: View {
         NavigationStack {
             ZStack {
                 LinearGradient(
-                    colors: [AppColors.sandBackground, Color.white],
+                    colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                     startPoint: .top,
                     endPoint: .bottom
                 )

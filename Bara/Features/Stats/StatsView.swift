@@ -71,7 +71,7 @@ struct StatsView: View {
             }
             .background(
                 LinearGradient(
-                    colors: [AppColors.sandBackground, Color.white],
+                    colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -139,7 +139,7 @@ private struct StatsLoadingSplashOverlayView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [AppColors.sandBackground, Color.white],
+                colors: [AppColors.sandBackground, AppColors.sandBackgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
