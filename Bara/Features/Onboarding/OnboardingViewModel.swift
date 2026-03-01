@@ -15,13 +15,8 @@ final class OnboardingViewModel: ObservableObject {
     let steps: [Step] = [
         Step(
             title: "Meet Bara",
-            detail: "Your capybara reflects your focus. Keep distracting time low to keep Bara happy.",
+            detail: "Bara mirrors your focus. Tap below to choose distracting apps and set your threshold.",
             symbolName: "pawprint.fill"
-        ),
-        Step(
-            title: "Pick Distractions",
-            detail: "Choose the apps that distract you the most and set your threshold.",
-            symbolName: "square.stack.3d.up.fill"
         )
     ]
 

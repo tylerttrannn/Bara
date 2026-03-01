@@ -40,33 +40,23 @@ struct OnboardingFlowView: View {
             .ignoresSafeArea()
 
             VStack(spacing: Spacing.large) {
-                TabView(selection: $viewModel.pageIndex) {
-                    ForEach(Array(viewModel.steps.enumerated()), id: \.offset) { index, step in
-                        VStack(spacing: Spacing.large) {
-                            Spacer()
+                Spacer()
 
-                            Image("very_happy")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 220, height: 220)
+                Image("very_happy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
 
-                            Text(step.title)
-                                .font(AppTypography.title)
+                Text(viewModel.steps.first?.title ?? "Meet Bara")
+                    .font(AppTypography.title)
 
-                            Text(step.detail)
-                                .font(AppTypography.body)
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, Spacing.large)
+                Text(viewModel.steps.first?.detail ?? "Bara mirrors your focus.")
+                    .font(AppTypography.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.large)
 
-                            Spacer()
-                        }
-                        .tag(index)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-
-                pageDots
+                Spacer()
 
                 Button("Select distracting apps") {
                     Haptics.impact(.light)
@@ -74,8 +64,6 @@ struct OnboardingFlowView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppColors.accentGreen)
-                .opacity(viewModel.pageIndex == 1 ? 1 : 0)
-                .disabled(viewModel.pageIndex != 1)
                 .frame(height: 44)
 
                 Button("Skip") {
@@ -125,16 +113,6 @@ struct OnboardingFlowView: View {
             )
         }
     }
-
-    private var pageDots: some View {
-        HStack(spacing: 8) {
-            ForEach(viewModel.steps.indices, id: \.self) { index in
-                Circle()
-                    .fill(index == viewModel.pageIndex ? AppColors.accentGreen : Color.gray.opacity(0.35))
-                    .frame(width: index == viewModel.pageIndex ? 12 : 8, height: index == viewModel.pageIndex ? 12 : 8)
-            }
-        }
-    }
 }
 
 
@@ -143,6 +121,7 @@ private struct ScreenTimePermissionInfoView: View {
     let onContinue: () -> Void
     @StateObject var authManager = AuthorizationManager()
     @Environment(\.presentToast) private var presentToast
+    @State private var hasAutoContinued = false
 
     var body: some View {
         NavigationStack {
@@ -181,9 +160,16 @@ private struct ScreenTimePermissionInfoView: View {
                     Group {
                         switch authManager.authorizationStatus {
                         case .approved:
-                            Text("Authorization Granted")
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.accentGreen)
+                            VStack(spacing: 8) {
+                                Text("Authorization Granted")
+                                    .font(AppTypography.body)
+                                    .foregroundStyle(AppColors.accentGreen)
+                                Text("Opening app selector...")
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(.secondary)
+                                ProgressView()
+                                    .tint(AppColors.accentGreen)
+                            }
                         case .denied:
                             Text("Authorization denied. You can enable it in Settings and come back.")
                                 .font(AppTypography.caption)
@@ -199,16 +185,7 @@ private struct ScreenTimePermissionInfoView: View {
 
                     Spacer()
 
-                    if authManager.authorizationStatus == .approved {
-                        Button("Continue") {
-                            Haptics.impact(.light)
-                            onContinue()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(AppColors.accentGreen)
-                        .font(AppTypography.body)
-                        .frame(maxWidth: .infinity)
-                    } else {
+                    if authManager.authorizationStatus != .approved {
                         Button("Request Authorization") {
                             Haptics.impact(.medium)
                             Task {
@@ -225,12 +202,16 @@ private struct ScreenTimePermissionInfoView: View {
             }
             .task {
                 await authManager.checkAuthorization()
+                if authManager.authorizationStatus == .approved {
+                    autoContinueIfNeeded()
+                }
             }
             .onChange(of: authManager.authorizationStatus) { _, newStatus in
                 switch newStatus {
                 case .approved:
                     Haptics.notify(.success)
                     presentToast(ToastFactory.make(kind: .success, message: "Screen Time access granted."))
+                    autoContinueIfNeeded()
                 case .denied:
                     Haptics.notify(.error)
                     presentToast(ToastFactory.make(kind: .error, message: "Screen Time access denied. Enable it in Settings."))
@@ -248,6 +229,14 @@ private struct ScreenTimePermissionInfoView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func autoContinueIfNeeded() {
+        guard !hasAutoContinued else { return }
+        hasAutoContinued = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            onContinue()
         }
     }
 }

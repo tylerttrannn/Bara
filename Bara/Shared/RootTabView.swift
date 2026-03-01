@@ -21,6 +21,7 @@ struct RootTabView: View {
     var body: some View {
         TabView {
             DashboardView(service: service, buddyService: buddyService, allowanceStore: allowanceStore)
+                .id(showOnboarding ? "dashboard.onboarding" : "dashboard.ready")
                 .tabItem {
                     Label("Dashboard", systemImage: "house.fill")
                 }
