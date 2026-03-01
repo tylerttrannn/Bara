@@ -52,6 +52,7 @@ struct DashboardView: View {
                         }
                         .padding(Spacing.medium)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .refreshable {
                         await viewModel.refresh()
                     }

@@ -17,6 +17,7 @@ struct RequestMoreTimeCardView: View {
     let onPair: () -> Void
     let onUnpair: () -> Void
     let onSubmit: () -> Void
+    @FocusState private var isNoteFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -70,6 +71,11 @@ struct RequestMoreTimeCardView: View {
                     axis: .vertical
                 )
                 .lineLimit(1...3)
+                .submitLabel(.done)
+                .focused($isNoteFieldFocused)
+                .onSubmit {
+                    isNoteFieldFocused = false
+                }
                 .padding(10)
                 .background(Color.white.opacity(0.7))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -126,6 +132,14 @@ struct RequestMoreTimeCardView: View {
                 .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isNoteFieldFocused = false
+                }
+            }
+        }
     }
 
     private var presetMinuteChips: some View {
