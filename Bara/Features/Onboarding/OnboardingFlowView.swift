@@ -58,20 +58,18 @@ struct OnboardingFlowView: View {
 
                 Spacer()
 
-                Button("Select distracting apps") {
+                Button {
                     Haptics.impact(.light)
                     showScreenTimePermissionInfo = true
+                } label: {
+                    Text("Select Apps")
+                        .frame(maxWidth: .infinity, minHeight: 40)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppColors.accentGreen)
-                .frame(height: 44)
-
-                Button("Skip") {
-                    Haptics.impact(.light)
-                    onFinish()
-                }
-                .font(AppTypography.caption)
-                .padding(.top, Spacing.xSmall)
+                .font(AppTypography.body)
+                .padding(.horizontal, Spacing.small)
+                .padding(.vertical, Spacing.xSmall)
             }
             .padding(Spacing.large)
         }
@@ -186,16 +184,20 @@ private struct ScreenTimePermissionInfoView: View {
                     Spacer()
 
                     if authManager.authorizationStatus != .approved {
-                        Button("Request Authorization") {
+                        Button {
                             Haptics.impact(.medium)
                             Task {
                                 await authManager.requestAuthorization()
                             }
+                        } label: {
+                            Text("Request Authorization")
+                                .frame(maxWidth: .infinity, minHeight: 40)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(AppColors.accentGreen)
                         .font(AppTypography.body)
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, Spacing.small)
+                        .padding(.vertical, Spacing.xSmall)
                     }
                 }
                 .padding(Spacing.large)
@@ -315,14 +317,18 @@ private struct ThresholdSelectionView: View {
 
                     Spacer(minLength: 0)
 
-                    Button("Start Dashboard") {
+                    Button {
                         Haptics.impact(.medium)
                         onContinue()
+                    } label: {
+                        Text("Finish Setup")
+                            .frame(maxWidth: .infinity, minHeight: 40)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(AppColors.accentGreen)
                     .font(AppTypography.body)
-                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, Spacing.small)
+                    .padding(.vertical, Spacing.xSmall)
                 }
                 .padding(Spacing.large)
             }
