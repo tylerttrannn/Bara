@@ -1,7 +1,12 @@
 import Foundation
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 enum AppGroupDefaults {
     static let suiteName = "group.com.Bara.appblocker"
+    static let alternateSuiteNames = ["group.com.bara.appblocker", "group.Bara"]
+    static let widgetKind = "BaraPetWidget"
     static let appSelectionStorageKey = "bara"
 
     static let onboardingCompleted = "bara.onboarding.completed"
@@ -34,7 +39,33 @@ enum AppGroupDefaults {
     static let defaultSupabaseAnonKey = "sb_publishable_0-DwUmg2BcrqLYSm5Ym6Xw_aqsDhi2N"
 
     static var sharedDefaults: UserDefaults {
-        UserDefaults(suiteName: suiteName) ?? .standard
+        defaultsForAppGroup() ?? .standard
+    }
+    
+    static var isAppGroupAvailable: Bool {
+        defaultsForAppGroup() != nil
+    }
+
+    @discardableResult
+    static func verifyAppGroupAccess() -> Bool {
+        guard let defaults = defaultsForAppGroup() else { return false }
+        let probeKey = "bara.appgroup.probe"
+        defaults.set(true, forKey: probeKey)
+        return defaults.bool(forKey: probeKey)
+    }
+
+    private static func defaultsForAppGroup() -> UserDefaults? {
+        if let primary = UserDefaults(suiteName: suiteName) {
+            return primary
+        }
+
+        for suite in alternateSuiteNames {
+            if let defaults = UserDefaults(suiteName: suite) {
+                return defaults
+            }
+        }
+
+        return nil
     }
 
     static func ensureLocalUserID(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) -> UUID {
@@ -62,6 +93,9 @@ enum AppGroupDefaults {
         let normalized = max(0, min(value, 100))
         defaults.set(normalized, forKey: cachedHealth)
         defaults.set(Double(normalized), forKey: legacyHealth)
+#if canImport(WidgetKit)
+        WidgetCenter.shared.reloadTimelines(ofKind: widgetKind)
+#endif
     }
 
     static func cachedPointsValue(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) -> Int {

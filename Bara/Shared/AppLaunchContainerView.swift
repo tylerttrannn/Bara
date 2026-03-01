@@ -58,7 +58,7 @@ private struct LaunchSplashView: View {
                     .offset(y: animateCapybara ? -5 : 4)
                     .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animateCapybara)
 
-                Text("bara")
+                Text("Bara")
                     .font(AppTypography.title)
                     .foregroundStyle(.primary)
                     .opacity(animateCapybara ? 1 : 0.88)
