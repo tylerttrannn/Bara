@@ -1,117 +1,45 @@
-//
-//  ShieldConfigurationExtension.swift
-//  BaraShieldConfig
-//
-//  Created by Tyler Tran on 2/28/26.
-//
-
 import ManagedSettings
 import ManagedSettingsUI
 import UIKit
 
-// Override the functions below to customize the shields used in various situations.
-// The system provides a default appearance for any methods that your subclass doesn't override.
-// Make sure that your class name matches the NSExtensionPrincipalClass in your Info.plist.
-class ShieldConfigurationExtension: ShieldConfigurationDataSource {
-    override func configuration(shielding application: Application) -> ShieldConfiguration {
-        
-        // Customize the shield as needed for applications.
-        return ShieldConfiguration(
-            backgroundBlurStyle: .systemThinMaterial,
-            backgroundColor: .none,
+final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
+    private let background = UIColor(red: 0.07, green: 0.09, blue: 0.13, alpha: 1.0)
+    private let subtitleColor = UIColor(white: 0.82, alpha: 1.0)
+    private let buttonColor = UIColor(red: 0.23, green: 0.62, blue: 0.52, alpha: 1.0)
+    private let defaultIcon = UIImage(systemName: "hourglass")
 
-            title: .init(
-                text: "\(application.localizedDisplayName ?? "App") blocked by Bara",
-                color: .white
-            ),
-            
-            
-            subtitle: .init(
-                text: "This app is blocked by Bara. Open Bara to request more time.",
-                color: UIColor(white: 0.85, alpha: 1.0)
-            ),
-            
-            primaryButtonLabel: .init(
-                text: "Close",
-                color: .white
-            ),
-            primaryButtonBackgroundColor: UIColor(red: 0.25, green: 0.5, blue: 1.0, alpha: 1.0),
-       
-        )
+    nonisolated override init() {
+        super.init()
     }
-    
-    override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
-        // Customize the shield as needed for applications shielded because of their category.
-        return ShieldConfiguration(
-            backgroundBlurStyle: .systemThinMaterial,
-            backgroundColor: .none,
-            
-            title: .init(
-                text: "Blocked by Bara",
-                color: .white
-            ),
-            
-            subtitle: .init(
-                text: "This app is blocked by Bara. Open Bara to request more time.",
-                color: UIColor(white: 0.85, alpha: 1.0)
-            ),
-            
-            primaryButtonLabel: .init(
-                text: "Close",
-                color: .white
-            ),
-            primaryButtonBackgroundColor: UIColor(red: 0.25, green: 0.5, blue: 1.0, alpha: 1.0),
-       
-        )
+
+    nonisolated override func configuration(shielding application: Application) -> ShieldConfiguration {
+        makeConfiguration(title: "\(application.localizedDisplayName ?? "App") blocked by Bara")
     }
-    
-    override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
-        // Customize the shield as needed for web domains.
-        return ShieldConfiguration(
-            backgroundBlurStyle: .systemThinMaterial,
-            backgroundColor: .none,
-            
-            title: .init(
-                text: "Blocked by Bara",
-                color: .white
-            ),
-            
-            subtitle: .init(
-                text: "This app is blocked by Bara. Open Bara to request more time.",
-                color: UIColor(white: 0.85, alpha: 1.0)
-            ),
-            
-            primaryButtonLabel: .init(
-                text: "Close",
-                color: .white
-            ),
-            primaryButtonBackgroundColor: UIColor(red: 0.25, green: 0.5, blue: 1.0, alpha: 1.0),
-       
-        )
+
+    nonisolated override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
+        makeConfiguration(title: "Blocked by Bara")
     }
-    
-    override func configuration(shielding webDomain: WebDomain, in category: ActivityCategory) -> ShieldConfiguration {
-        // Customize the shield as needed for web domains shielded because of their category.
-        return ShieldConfiguration(
-            backgroundBlurStyle: .systemThinMaterial,
-            backgroundColor: .none,
-            
-            title: .init(
-                text: "Blocked by Bara",
-                color: .white
-            ),
-            
+
+    nonisolated override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
+        makeConfiguration(title: "Blocked by Bara")
+    }
+
+    nonisolated override func configuration(shielding webDomain: WebDomain, in category: ActivityCategory) -> ShieldConfiguration {
+        makeConfiguration(title: "Blocked by Bara")
+    }
+
+    nonisolated private func makeConfiguration(title: String) -> ShieldConfiguration {
+        ShieldConfiguration(
+            backgroundBlurStyle: .systemChromeMaterialDark,
+            backgroundColor: background,
+            icon: defaultIcon,
+            title: .init(text: title, color: .white),
             subtitle: .init(
-                text: "This app is blocked by Bara. Open Bara to request more time.",
-                color: UIColor(white: 0.85, alpha: 1.0)
+                text: "Blocked by Bara. Request extra minutes from a friend in Bara.",
+                color: subtitleColor
             ),
-            
-            primaryButtonLabel: .init(
-                text: "Close",
-                color: .white
-            ),
-            primaryButtonBackgroundColor: UIColor(red: 0.25, green: 0.5, blue: 1.0, alpha: 1.0),
-       
+            primaryButtonLabel: .init(text: "Close", color: .white),
+            primaryButtonBackgroundColor: buttonColor
         )
     }
 }
