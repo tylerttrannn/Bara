@@ -15,13 +15,10 @@ import UIKit
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     override func configuration(shielding application: Application) -> ShieldConfiguration {
         
-        let uiImage = UIImage(named: "sad") ?? UIImage(systemName: "app.fill")!
-
         // Customize the shield as needed for applications.
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThinMaterial,
             backgroundColor: .none,
-            icon: uiImage,
 
             title: .init(
                 text: "\(application.localizedDisplayName ?? "App") blocked by Bara",
