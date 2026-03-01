@@ -100,6 +100,7 @@ struct RequestMoreTimeCardView: View {
             }
 
             Button {
+                Haptics.impact(.medium)
                 onSubmit()
             } label: {
                 HStack {
@@ -131,6 +132,7 @@ struct RequestMoreTimeCardView: View {
         HStack(spacing: 8) {
             ForEach(BorrowRequestDraft.allowedMinutes, id: \.self) { minutes in
                 Button("\(minutes)") {
+                    Haptics.selection()
                     onSelectMinutes(minutes)
                 }
                 .buttonStyle(.plain)
@@ -162,6 +164,7 @@ struct RequestMoreTimeCardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 Button("Pair") {
+                    Haptics.impact(.light)
                     onPair()
                 }
                 .buttonStyle(.borderedProminent)
@@ -180,6 +183,7 @@ struct RequestMoreTimeCardView: View {
     private var unpairRow: some View {
         HStack {
             Button(role: .destructive) {
+                Haptics.impact(.light)
                 onUnpair()
             } label: {
                 HStack(spacing: 6) {

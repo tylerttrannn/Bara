@@ -69,6 +69,7 @@ struct OnboardingFlowView: View {
                 pageDots
 
                 Button("Select distracting apps") {
+                    Haptics.impact(.light)
                     showScreenTimePermissionInfo = true
                 }
                 .buttonStyle(.borderedProminent)
@@ -78,6 +79,7 @@ struct OnboardingFlowView: View {
                 .frame(height: 44)
 
                 Button("Skip") {
+                    Haptics.impact(.light)
                     onFinish()
                 }
                 .font(AppTypography.caption)
@@ -93,6 +95,7 @@ struct OnboardingFlowView: View {
         .onChange(of: activitySelection) { _, newSelection in
             if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
                 AppSelectionModel.setSelection(activitySelection)
+                Haptics.notify(.success)
                 presentToast(ToastFactory.make(kind: .success, message: "Distractions saved."))
                 showThresholdPage = true
             }
@@ -114,6 +117,7 @@ struct OnboardingFlowView: View {
                 onContinue: {
                     let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
                     defaults.set(thresholdMinutes, forKey: DefaultsKey.thresholdMinutes)
+                    Haptics.notify(.success)
                     presentToast(ToastFactory.make(kind: .success, message: "Threshold set to \(thresholdMinutes) min."))
                     showThresholdPage = false
                     onFinish()
@@ -197,6 +201,7 @@ private struct ScreenTimePermissionInfoView: View {
 
                     if authManager.authorizationStatus == .approved {
                         Button("Continue") {
+                            Haptics.impact(.light)
                             onContinue()
                         }
                         .buttonStyle(.borderedProminent)
@@ -205,6 +210,7 @@ private struct ScreenTimePermissionInfoView: View {
                         .frame(maxWidth: .infinity)
                     } else {
                         Button("Request Authorization") {
+                            Haptics.impact(.medium)
                             Task {
                                 await authManager.requestAuthorization()
                             }
@@ -223,8 +229,10 @@ private struct ScreenTimePermissionInfoView: View {
             .onChange(of: authManager.authorizationStatus) { _, newStatus in
                 switch newStatus {
                 case .approved:
+                    Haptics.notify(.success)
                     presentToast(ToastFactory.make(kind: .success, message: "Screen Time access granted."))
                 case .denied:
+                    Haptics.notify(.error)
                     presentToast(ToastFactory.make(kind: .error, message: "Screen Time access denied. Enable it in Settings."))
                 case .notDetermined:
                     break
@@ -235,6 +243,7 @@ private struct ScreenTimePermissionInfoView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Back") {
+                        Haptics.impact(.light)
                         onBack()
                     }
                 }
@@ -318,6 +327,7 @@ private struct ThresholdSelectionView: View {
                     Spacer(minLength: 0)
 
                     Button("Start Dashboard") {
+                        Haptics.impact(.medium)
                         onContinue()
                     }
                     .buttonStyle(.borderedProminent)
@@ -334,6 +344,9 @@ private struct ThresholdSelectionView: View {
                     }
                 }
             }
+        }
+        .onChange(of: thresholdMinutes) { _, _ in
+            Haptics.selection()
         }
     }
 }

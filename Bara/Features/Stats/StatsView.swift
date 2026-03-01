@@ -70,8 +70,10 @@ struct StatsView: View {
                         await viewModel.load()
                         switch viewModel.state {
                         case .error(let message):
+                            Haptics.notify(.error)
                             presentToast(ToastFactory.make(kind: .error, message: message))
                         case .loaded:
+                            Haptics.notify(.success)
                             presentToast(ToastFactory.make(kind: .success, message: "Stats updated."))
                         case .idle, .loading:
                             break

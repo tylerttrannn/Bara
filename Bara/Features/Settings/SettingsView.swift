@@ -56,12 +56,14 @@ struct SettingsView: View {
 
                     SettingRowView(title: "Edit Distractions", subtitle: "Open app/category selector") {
                         settingsActionButton("Edit") {
+                            Haptics.impact(.light)
                             isPickerPresented = true
                         }
                     }
 
                     SettingRowView(title: "Threshold Time", subtitle: "Current: \(thresholdMinutes) min") {
                         settingsActionButton("Change") {
+                            Haptics.impact(.light)
                             loadThresholdFromDefaults()
                             showThresholdEditor = true
                         }
@@ -83,6 +85,7 @@ struct SettingsView: View {
                                 tint: Color.red.opacity(0.85),
                                 isDisabled: viewModel.unpairState.isLoading
                             ) {
+                                Haptics.impact(.light)
                                 showUnpairConfirmation = true
                             }
                         }
@@ -96,6 +99,7 @@ struct SettingsView: View {
 
                     SettingRowView(title: "Block Apps Instantly", subtitle: "Runs the same start activity flow") {
                         settingsActionButton("Block") {
+                            Haptics.impact(.medium)
                             viewModel.triggerBlockNow()
                             presentToast(ToastFactory.make(kind: .info, message: "Block test triggered."))
                         }
@@ -103,6 +107,7 @@ struct SettingsView: View {
 
                     SettingRowView(title: "Unblock Apps Instantly", subtitle: "Clears shields once for demo testing") {
                         settingsActionButton("Unblock") {
+                            Haptics.impact(.medium)
                             viewModel.triggerUnblockNow()
                             presentToast(ToastFactory.make(kind: .info, message: "Unblock test triggered."))
                         }
@@ -110,6 +115,7 @@ struct SettingsView: View {
 
                     SettingRowView(title: "Reset Demo State", subtitle: "Server + local reset, then onboarding.") {
                         settingsActionButton("Reset", isDisabled: viewModel.resetState.isLoading) {
+                            Haptics.impact(.medium)
                             showResetConfirmation = true
                         }
                     }
@@ -153,8 +159,10 @@ struct SettingsView: View {
         .onChange(of: viewModel.unpairState) { _, newState in
             switch newState {
             case .success:
+                Haptics.notify(.success)
                 presentToast(ToastFactory.make(kind: .success, message: "Unpaired. You can now pair with someone else."))
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
             case .idle, .loading:
                 break
@@ -163,9 +171,11 @@ struct SettingsView: View {
         .onChange(of: viewModel.resetState) { _, newState in
             switch newState {
             case .success:
+                Haptics.notify(.success)
                 presentToast(ToastFactory.make(kind: .success, message: "Demo reset complete."))
                 onResetDemo()
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
             case .idle, .loading:
                 break
@@ -177,6 +187,7 @@ struct SettingsView: View {
             titleVisibility: .visible
         ) {
             Button("Unpair Buddy", role: .destructive) {
+                Haptics.impact(.medium)
                 Task { await viewModel.unpairBuddy() }
             }
             Button("Cancel", role: .cancel) {}
@@ -189,6 +200,7 @@ struct SettingsView: View {
             titleVisibility: .visible
         ) {
             Button("Reset", role: .destructive) {
+                Haptics.impact(.medium)
                 Task { await viewModel.resetDemoState() }
             }
             Button("Cancel", role: .cancel) {}
@@ -310,12 +322,16 @@ private struct ThresholdEditorSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
+                        Haptics.impact(.light)
                         onSave(thresholdMinutes)
                         dismiss()
                     }
                     .fontWeight(.semibold)
                 }
             }
+        }
+        .onChange(of: thresholdMinutes) { _, _ in
+            Haptics.selection()
         }
     }
 }

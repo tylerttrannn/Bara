@@ -85,8 +85,10 @@ struct DashboardView: View {
         .onChange(of: viewModel.pairSubmitState) { _, newState in
             switch newState {
             case .success:
+                Haptics.notify(.success)
                 presentToast(ToastFactory.make(kind: .success, message: "Buddy paired successfully."))
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
             case .idle, .loading:
                 break
@@ -95,8 +97,10 @@ struct DashboardView: View {
         .onChange(of: viewModel.requestSubmitState) { _, newState in
             switch newState {
             case .success:
+                Haptics.notify(.success)
                 presentToast(ToastFactory.make(kind: .success, message: "Request sent to your buddy."))
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
             case .idle, .loading:
                 break
@@ -106,9 +110,11 @@ struct DashboardView: View {
             switch newState {
             case .success:
                 let message = lastResolveAction == .approve ? "Request approved." : "Request denied."
+                Haptics.notify(lastResolveAction == .approve ? .success : .warning)
                 presentToast(ToastFactory.make(kind: .success, message: message))
                 lastResolveAction = nil
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
                 lastResolveAction = nil
             case .idle, .loading:
@@ -118,12 +124,24 @@ struct DashboardView: View {
         .onChange(of: viewModel.unpairState) { _, newState in
             switch newState {
             case .success:
-                presentToast(ToastFactory.make(kind: .success, message: "Unpaired. You can now pair with someone else."))
+                Haptics.notify(.success)
+                presentToast(ToastFactory.make(kind: .success, message: "Unpaired"))
             case .error(let message):
+                Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
             case .idle, .loading:
                 break
             }
+        }
+        .onChange(of: viewModel.newlyApprovedOutgoingRequest) { _, approvedRequest in
+            guard let approvedRequest else { return }
+            Haptics.notify(.success)
+            presentToast(
+                ToastFactory.make(
+                    kind: .success,
+                    message: "Buddy approved \(approvedRequest.minutesRequested) extra minutes."
+                )
+            )
         }
         .confirmationDialog(
             "Unpair buddy?",
@@ -131,6 +149,7 @@ struct DashboardView: View {
             titleVisibility: .visible
         ) {
             Button("Unpair Buddy", role: .destructive) {
+                Haptics.impact(.medium)
                 Task { await viewModel.unpairBuddy() }
             }
             Button("Cancel", role: .cancel) {}

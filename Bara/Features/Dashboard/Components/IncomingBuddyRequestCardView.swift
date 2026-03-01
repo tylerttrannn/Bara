@@ -35,6 +35,7 @@ struct IncomingBuddyRequestCardView: View {
 
                 HStack(spacing: 10) {
                     Button("Deny") {
+                        Haptics.impact(.light)
                         onDeny()
                     }
                     .buttonStyle(.bordered)
@@ -42,6 +43,7 @@ struct IncomingBuddyRequestCardView: View {
                     .disabled(isResolving)
 
                     Button("Approve") {
+                        Haptics.impact(.medium)
                         onApprove()
                     }
                     .buttonStyle(.borderedProminent)
