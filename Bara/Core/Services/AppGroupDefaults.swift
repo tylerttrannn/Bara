@@ -30,7 +30,7 @@ enum AppGroupDefaults {
     static let blockNow = "blocknow"
     static let unblockNow = "unblocknow"
     static let borrowApprovalRequesterPointsPenalty = 15
-    static let borrowApprovalRequesterHealthPenalty = 15
+    static let borrowApprovalRequesterHealthPenaltyBase = 10
     static let borrowApprovalBuddyPointsReward = 10
 
     static let supabaseURL = "bara.supabase.url"
@@ -126,5 +126,10 @@ enum AppGroupDefaults {
 
     static func markOnboardingIncomplete(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
         defaults.set(false, forKey: onboardingCompleted)
+    }
+
+    static func borrowApprovalRequesterHealthPenalty(for minutesRequested: Int) -> Int {
+        let normalizedMinutes = max(0, minutesRequested)
+        return min(100, borrowApprovalRequesterHealthPenaltyBase + normalizedMinutes)
     }
 }

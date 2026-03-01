@@ -46,6 +46,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var resolveState: AsyncActionState = .idle
     @Published private(set) var unpairState: AsyncActionState = .idle
     @Published private(set) var newlyApprovedOutgoingRequest: BorrowRequest?
+    @Published private(set) var latestHealthPenalty: Int = 0
     @Published private(set) var buddySectionError: String?
     @Published private(set) var requestDisabledReason: String?
 
@@ -313,6 +314,7 @@ final class DashboardViewModel: ObservableObject {
 
         allowanceStore.storeAllowance(allowance)
         defaults.set(latestOutgoingRequest.id.uuidString, forKey: AppGroupDefaults.lastAppliedBorrowRequestID)
+        latestHealthPenalty = AppGroupDefaults.borrowApprovalRequesterHealthPenalty(for: latestOutgoingRequest.minutesRequested)
         newlyApprovedOutgoingRequest = latestOutgoingRequest
         scheduleLimits.activateBorrowAllowanceIfAvailable()
     }

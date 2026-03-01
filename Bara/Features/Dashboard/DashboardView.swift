@@ -47,7 +47,7 @@ struct DashboardView: View {
                             HPProgressCardView(
                                 hp: snapshot.hp,
                                 showPenaltyEmphasis: showHealthPenaltyCue,
-                                penaltyAmount: AppGroupDefaults.borrowApprovalRequesterHealthPenalty
+                                penaltyAmount: viewModel.latestHealthPenalty
                             )
 
                             DeviceActivityReport(.totalActivity, filter: todayActivityFilter)
@@ -145,7 +145,7 @@ struct DashboardView: View {
             presentToast(
                 ToastFactory.make(
                     kind: .success,
-                    message: "Friend approved \(approvedRequest.minutesRequested) extra minutes. Health -\(AppGroupDefaults.borrowApprovalRequesterHealthPenalty)."
+                    message: "Friend approved \(approvedRequest.minutesRequested) extra minutes. Health -\(viewModel.latestHealthPenalty)."
                 )
             )
             triggerHealthPenaltyCue()

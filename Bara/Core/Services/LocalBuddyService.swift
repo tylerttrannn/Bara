@@ -209,6 +209,7 @@ final class LocalBuddyService: BuddyProviding {
         requests[index] = updated
 
         if decision == .approve {
+            let healthPenalty = AppGroupDefaults.borrowApprovalRequesterHealthPenalty(for: request.minutesRequested)
             var meUpdated = me
             meUpdated.points += AppGroupDefaults.borrowApprovalBuddyPointsReward
             saveProfile(meUpdated)
@@ -217,7 +218,7 @@ final class LocalBuddyService: BuddyProviding {
             if request.requesterID == meUpdated.id {
                 let nextPoints = max(0, meUpdated.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
                 meUpdated.points = nextPoints
-                let nextHealth = max(0, meUpdated.health - AppGroupDefaults.borrowApprovalRequesterHealthPenalty)
+                let nextHealth = max(0, meUpdated.health - healthPenalty)
                 meUpdated.health = nextHealth
                 saveProfile(meUpdated)
                 AppGroupDefaults.setCachedHealthValue(nextHealth, defaults: defaults)

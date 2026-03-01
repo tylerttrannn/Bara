@@ -290,7 +290,11 @@ final class SupabaseBuddyService: BuddyProviding {
         var updated = try await patchRequestStatus(id: current.id, status: decision.resultingStatus)
 
         if decision == .approve {
-            try await applyApprovalEffects(requesterID: current.requesterID, buddyID: current.buddyID)
+            try await applyApprovalEffects(
+                requesterID: current.requesterID,
+                buddyID: current.buddyID,
+                minutesRequested: current.minutesRequested
+            )
         }
 
         updated.requesterDisplayName = try await fetchDisplayName(for: updated.requesterID)
@@ -486,10 +490,12 @@ final class SupabaseBuddyService: BuddyProviding {
         )
     }
 
-    private func applyApprovalEffects(requesterID: UUID, buddyID: UUID) async throws {
+    private func applyApprovalEffects(requesterID: UUID, buddyID: UUID, minutesRequested: Int) async throws {
+        let healthPenalty = AppGroupDefaults.borrowApprovalRequesterHealthPenalty(for: minutesRequested)
+
         if var requester = try await fetchProfile(id: requesterID) {
             requester.points = max(0, requester.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
-            requester.health = max(0, requester.health - AppGroupDefaults.borrowApprovalRequesterHealthPenalty)
+            requester.health = max(0, requester.health - healthPenalty)
             _ = try await patchProfile(
                 id: requester.id,
                 fields: [
