@@ -15,7 +15,6 @@ struct SettingsView: View {
     @State private var activitySelectionBeforeEditData: Data?
     @State private var isPickerPresented = false
     @State private var showThresholdEditor = false
-    @State private var showUnpairConfirmation = false
     @State private var showResetConfirmation = false
     @State private var thresholdMinutes: Int = {
         let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
@@ -56,28 +55,6 @@ struct SettingsView: View {
                             Haptics.impact(.light)
                             loadThresholdFromDefaults()
                             showThresholdEditor = true
-                        }
-                    }
-
-                    if viewModel.buddyProfile?.isPaired == true {
-                        Text("Friend")
-                            .font(AppTypography.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, Spacing.small)
-
-                        SettingRowView(
-                            title: "Remove Friend",
-                            subtitle: "Unlink both users and expire pending requests."
-                        ) {
-                            settingsActionButton(
-                                "Unpair",
-                                tint: Color.red.opacity(0.85),
-                                isDisabled: viewModel.unpairState.isLoading
-                            ) {
-                                Haptics.impact(.light)
-                                showUnpairConfirmation = true
-                            }
                         }
                     }
 
@@ -156,21 +133,6 @@ struct SettingsView: View {
             }
         }
         .addToastSafeAreaObserver()
-        .task {
-            await viewModel.loadBuddyProfile()
-        }
-        .onChange(of: viewModel.unpairState) { _, newState in
-            switch newState {
-            case .success:
-                Haptics.notify(.success)
-                presentToast(ToastFactory.make(kind: .success, message: "Friend removed. You can now connect with someone else."))
-            case .error(let message):
-                Haptics.notify(.error)
-                presentToast(ToastFactory.make(kind: .error, message: message))
-            case .idle, .loading:
-                break
-            }
-        }
         .onChange(of: viewModel.resetState) { _, newState in
             switch newState {
             case .success:
@@ -183,19 +145,6 @@ struct SettingsView: View {
             case .idle, .loading:
                 break
             }
-        }
-        .confirmationDialog(
-            "Remove friend?",
-            isPresented: $showUnpairConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Remove Friend", role: .destructive) {
-                Haptics.impact(.medium)
-                Task { await viewModel.unpairBuddy() }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This will unlink both users and expire pending Friend Pass requests.")
         }
         .confirmationDialog(
             "Reset demo state?",
