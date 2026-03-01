@@ -31,23 +31,12 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.medium) {
-                    PermissionBannerView(granted: viewModel.settings.permissionGranted)
-
                     SettingRowView(title: "Notifications", subtitle: "Mock local reminder toggle") {
                         Toggle("Notifications", isOn: Binding(
                             get: { viewModel.settings.notificationsEnabled },
                             set: { viewModel.setNotifications($0) }
                         ))
                         .labelsHidden()
-                    }
-
-                    SettingRowView(title: "Reset Demo State", subtitle: "Show onboarding again") {
-                        Button("Reset") {
-                            viewModel.completeOnboarding(false)
-                            onResetDemo()
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(AppColors.accentTeal)
                     }
 
                     SettingRowView(title: "Edit Distractions", subtitle: "Open app/category selector") {
@@ -67,20 +56,16 @@ struct SettingsView: View {
                         .tint(AppColors.accentGreen)
                     }
 
-                    SettingRowView(title: "Blocking Test", subtitle: "Start DeviceActivity monitoring now") {
-                        Button("Start test") {
-                            viewModel.startActivityLimitTest()
+                    SettingRowView(title: "Block Apps Instantly", subtitle: "Placeholder UI only (logic coming next)") {
+                        Button("Block now") {
+                            // Placeholder only. Logic to be wired next.
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(AppColors.accentGreen)
+                        .tint(.red)
                     }
 
                     supabaseDebugCard
 
-                    SettingRowView(title: "About Bara", subtitle: "Hackathon MVP UI shell") {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(AppColors.accentTeal)
-                    }
                 }
                 .padding(Spacing.medium)
             }
