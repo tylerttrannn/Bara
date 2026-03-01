@@ -3,8 +3,8 @@ import FamilyControls
 
 struct OnboardingFlowView: View {
     private enum DefaultsKey {
-        static let appGroupSuite = "group.com.Bara.appblocker"
-        static let thresholdMinutes = "bara.threshold.minutes"
+        static let appGroupSuite = AppGroupDefaults.suiteName
+        static let thresholdMinutes = AppGroupDefaults.thresholdMinutes
     }
 
     @StateObject private var viewModel = OnboardingViewModel()
@@ -319,4 +319,3 @@ private struct ThresholdSelectionView: View {
         }
     }
 }
-

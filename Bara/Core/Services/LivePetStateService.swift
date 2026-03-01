@@ -2,10 +2,9 @@ import Foundation
 
 final class LivePetStateService: PetStateProviding {
     private enum DefaultsKey {
-        static let onboardingCompleted = "bara.onboarding.completed"
-        static let hp = "bara.pet.hp"
-        static let thresholdMinutes = "bara.threshold.minutes"
-        static let selectedAppIDs = "bara.distractions.selectedAppIDs"
+        static let onboardingCompleted = AppGroupDefaults.onboardingCompleted
+        static let thresholdMinutes = AppGroupDefaults.thresholdMinutes
+        static let selectedAppIDs = AppGroupDefaults.selectedAppIDs
     }
 
     private let lock = NSLock()
@@ -13,7 +12,7 @@ final class LivePetStateService: PetStateProviding {
     private let defaults: UserDefaults
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName: "group.com.Bara.appblocker") ?? .standard,
+        defaults: UserDefaults = AppGroupDefaults.sharedDefaults,
         forceOnboardingCompleted: Bool? = nil
     ) {
         self.defaults = defaults
@@ -27,8 +26,8 @@ final class LivePetStateService: PetStateProviding {
             permissionGranted: true
         )
 
-        if defaults.object(forKey: DefaultsKey.hp) == nil {
-            defaults.set(100.0, forKey: DefaultsKey.hp)
+        if defaults.object(forKey: AppGroupDefaults.cachedHealth) == nil {
+            AppGroupDefaults.setCachedHealthValue(100, defaults: defaults)
         }
 
         if defaults.object(forKey: DefaultsKey.thresholdMinutes) == nil {
@@ -37,7 +36,7 @@ final class LivePetStateService: PetStateProviding {
     }
 
     func fetchDashboardSnapshot() async throws -> PetSnapshot {
-        let hp = max(min(defaults.double(forKey: DefaultsKey.hp), 100), 0)
+        let hp = max(min(Double(AppGroupDefaults.cachedHealthValue(defaults: defaults)), 100), 0)
         let mood = moodForHP(hp)
 
         return PetSnapshot(

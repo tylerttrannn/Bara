@@ -6,7 +6,11 @@ struct BaraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppLaunchContainerView(service: container.petStateService)
+            AppLaunchContainerView(
+                service: container.petStateService,
+                buddyService: container.buddyService,
+                allowanceStore: container.allowanceStore
+            )
         }
     }
 }

@@ -9,14 +9,14 @@ import Foundation
 import FamilyControls
 
 class AppSelectionModel {
-    private static let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
+    private static let defaults = AppGroupDefaults.sharedDefaults
     private static let key = "bara"
 
     static func setSelection(_ selection: FamilyActivitySelection) {
         let encoder = JSONEncoder()
         do {
             let data = try encoder.encode(selection)
-            defaults?.set(data, forKey: key)
+            defaults.set(data, forKey: key)
             print("Data saved sucessfully")
         } catch {
             print("error \(error.localizedDescription)")
@@ -24,7 +24,7 @@ class AppSelectionModel {
     }
 
     static func getSelection() -> FamilyActivitySelection {
-        guard let data = defaults?.data(forKey: key) else {
+        guard let data = defaults.data(forKey: key) else {
             return FamilyActivitySelection()
         }
         

@@ -2,7 +2,7 @@ import Foundation
 
 final class MockPetStateService: PetStateProviding {
     private enum DefaultsKey {
-        static let onboardingCompleted = "bara.onboarding.completed"
+        static let onboardingCompleted = AppGroupDefaults.onboardingCompleted
     }
 
     private let lock = NSLock()

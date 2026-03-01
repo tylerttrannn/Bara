@@ -3,12 +3,20 @@ import DeviceActivity
 import _DeviceActivity_SwiftUI
 
 struct DashboardView: View {
-    private let service: PetStateProviding
     @StateObject private var viewModel: DashboardViewModel
 
-    init(service: PetStateProviding) {
-        self.service = service
-        _viewModel = StateObject(wrappedValue: DashboardViewModel(service: service))
+    init(
+        service: PetStateProviding,
+        buddyService: BuddyProviding = BuddyServiceFactory.makeDefault(),
+        allowanceStore: BorrowAllowanceProviding = AppGroupBorrowAllowanceStore()
+    ) {
+        _viewModel = StateObject(
+            wrappedValue: DashboardViewModel(
+                service: service,
+                buddyService: buddyService,
+                allowanceStore: allowanceStore
+            )
+        )
     }
 
     var body: some View {
@@ -30,6 +38,8 @@ struct DashboardView: View {
 
                             DeviceActivityReport(.totalActivity, filter: todayActivityFilter)
                                 .frame(height: 120, alignment: .top)
+
+                            buddySection
                         }
                         .padding(Spacing.medium)
                     }
@@ -47,7 +57,7 @@ struct DashboardView: View {
                 .ignoresSafeArea()
             )
             .navigationTitle("Bara")
-            .navigationBarTitleDisplayMode(.inline) 
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -64,6 +74,56 @@ struct DashboardView: View {
         }
     }
 
+    private var buddySection: some View {
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            Text("Buddy Time Exchange")
+                .font(AppTypography.subtitle)
+
+            IncomingBuddyRequestCardView(
+                request: viewModel.incomingPendingRequest,
+                isResolving: viewModel.resolveState.isLoading,
+                resolveError: viewModel.resolveState.errorMessage,
+                onDeny: {
+                    Task { await viewModel.denyIncomingRequest() }
+                },
+                onApprove: {
+                    Task { await viewModel.approveIncomingRequest() }
+                }
+            )
+
+            RequestMoreTimeCardView(
+                profile: viewModel.buddyProfile,
+                selectedMinutes: viewModel.selectedRequestMinutes,
+                note: viewModel.requestNote,
+                inviteCode: viewModel.inviteCode,
+                approvalsUsedToday: viewModel.approvalsUsedToday,
+                pendingOutgoingRequest: viewModel.pendingOutgoingRequest,
+                submitState: viewModel.requestSubmitState,
+                pairState: viewModel.pairSubmitState,
+                disabledReason: viewModel.requestDisabledReason,
+                onSelectMinutes: { viewModel.selectedRequestMinutes = $0 },
+                onNoteChange: { value in
+                    viewModel.requestNote = String(value.prefix(BorrowRequestDraft.maxNoteLength))
+                },
+                onInviteCodeChange: { value in
+                    viewModel.inviteCode = String(value.prefix(16))
+                },
+                onPair: {
+                    Task { await viewModel.pairWithInviteCode() }
+                },
+                onSubmit: {
+                    Task { await viewModel.submitBorrowRequest() }
+                }
+            )
+
+            if let buddySectionError = viewModel.buddySectionError {
+                Text(buddySectionError)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private var todayActivityFilter: DeviceActivityFilter {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
@@ -75,4 +135,3 @@ struct DashboardView: View {
         )
     }
 }
-

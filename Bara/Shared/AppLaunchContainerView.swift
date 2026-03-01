@@ -3,13 +3,15 @@ import UIKit
 
 struct AppLaunchContainerView: View {
     let service: PetStateProviding
+    let buddyService: BuddyProviding
+    let allowanceStore: BorrowAllowanceProviding
 
     @State private var showSplash = true
     @State private var splashOpacity = 1.0
 
     var body: some View {
         ZStack {
-            RootTabView(service: service)
+            RootTabView(service: service, buddyService: buddyService, allowanceStore: allowanceStore)
                 .opacity(showSplash ? 0 : 1)
 
             if showSplash {
