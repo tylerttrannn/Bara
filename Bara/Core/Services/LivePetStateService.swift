@@ -13,7 +13,7 @@ final class LivePetStateService: PetStateProviding {
     private let defaults: UserDefaults
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName: "group.Bara") ?? .standard,
+        defaults: UserDefaults = UserDefaults(suiteName: "group.com.Bara.appblocker") ?? .standard,
         forceOnboardingCompleted: Bool? = nil
     ) {
         self.defaults = defaults

@@ -9,7 +9,7 @@ import Foundation
 import FamilyControls
 
 class AppSelectionModel {
-    private static let defaults = UserDefaults(suiteName: "group.Bara")
+    private static let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
     private static let key = "bara"
 
     static func setSelection(_ selection: FamilyActivitySelection) {

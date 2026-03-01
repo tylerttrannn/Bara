@@ -33,12 +33,3 @@ struct SettingRowView<Accessory: View>: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        SettingRowView(title: "Notifications", subtitle: "Demo-only toggle") {
-            Toggle("", isOn: .constant(true))
-                .labelsHidden()
-        }
-        .padding()
-    }
-}

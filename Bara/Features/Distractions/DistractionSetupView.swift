@@ -88,8 +88,3 @@ struct DistractionSetupView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        DistractionSetupView(service: MockPetStateService())
-    }
-}

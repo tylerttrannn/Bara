@@ -21,7 +21,3 @@ struct ErrorStateView: View {
         .padding(Spacing.large)
     }
 }
-
-#Preview {
-    ErrorStateView(message: "Something went wrong.", buttonTitle: "Try Again", onRetry: {})
-}

@@ -41,9 +41,3 @@ struct HPProgressCardView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        HPProgressCardView(hp: 72)
-            .padding()
-    }
-}

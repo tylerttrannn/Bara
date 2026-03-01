@@ -40,9 +40,3 @@ struct RootTabView: View {
         }
     }
 }
-
-#Preview {
-    RootTabView(
-        service: MockPetStateService(settings: SettingsState(isOnboardingCompleted: false, notificationsEnabled: true, permissionGranted: true))
-    )
-}

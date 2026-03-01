@@ -20,9 +20,3 @@ struct UsageSummaryCardView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        UsageSummaryCardView(title: "Weekly average", value: "83m")
-            .padding()
-    }
-}

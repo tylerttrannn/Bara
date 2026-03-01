@@ -15,9 +15,23 @@ struct StatsWeeklyTrendReportView: View {
         max(points.map(\.minutes).max() ?? 0, 1)
     }
 
+    private func formattedDuration(minutes: Int) -> String {
+        let hours = minutes / 60
+        let remainderMinutes = minutes % 60
+
+        if hours > 0 {
+            if remainderMinutes == 0 {
+                return "\(hours)h"
+            }
+            return "\(hours)h \(remainderMinutes)m"
+        }
+
+        return "\(minutes)m"
+    }
+
     private func barHeight(for minutes: Int) -> CGFloat {
         let minHeight: CGFloat = 12
-        let maxHeight: CGFloat = 110
+        let maxHeight: CGFloat = 96
         let scaled = CGFloat(minutes) / CGFloat(maxMinutes) * maxHeight
         return max(minHeight, scaled)
     }
@@ -30,6 +44,13 @@ struct StatsWeeklyTrendReportView: View {
             HStack(alignment: .bottom, spacing: 10) {
                 ForEach(points) { point in
                     VStack(spacing: 4) {
+                        Text(formattedDuration(minutes: point.minutes))
+                            .font(.system(size: 9, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(height: 11)
+
                         RoundedRectangle(cornerRadius: 6)
                             .fill(Color(red: 0.92, green: 0.62, blue: 0.34))
                             .frame(width: 24, height: barHeight(for: point.minutes))
@@ -41,7 +62,7 @@ struct StatsWeeklyTrendReportView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .frame(height: 150, alignment: .bottom)
+            .frame(height: 164, alignment: .bottom)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -31,19 +31,3 @@ struct TrendPlaceholderChartView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        TrendPlaceholderChartView(
-            trend: [
-                DayUsagePoint(dayLabel: "Mon", minutes: 74),
-                DayUsagePoint(dayLabel: "Tue", minutes: 68),
-                DayUsagePoint(dayLabel: "Wed", minutes: 102),
-                DayUsagePoint(dayLabel: "Thu", minutes: 89),
-                DayUsagePoint(dayLabel: "Fri", minutes: 120),
-                DayUsagePoint(dayLabel: "Sat", minutes: 96),
-                DayUsagePoint(dayLabel: "Sun", minutes: 63)
-            ]
-        )
-        .padding()
-    }
-}

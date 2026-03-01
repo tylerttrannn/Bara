@@ -76,8 +76,3 @@ struct DashboardView: View {
     }
 }
 
-#Preview("Loaded") {
-    PreviewContainer {
-        DashboardView(service: MockPetStateService(settings: SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: true)))
-    }
-}

@@ -3,7 +3,7 @@ import FamilyControls
 
 struct OnboardingFlowView: View {
     private enum DefaultsKey {
-        static let appGroupSuite = "group.Bara"
+        static let appGroupSuite = "group.com.Bara.appblocker"
         static let thresholdMinutes = "bara.threshold.minutes"
     }
 
@@ -320,6 +320,3 @@ private struct ThresholdSelectionView: View {
     }
 }
 
-#Preview {
-    OnboardingFlowView(onFinish: {})
-}

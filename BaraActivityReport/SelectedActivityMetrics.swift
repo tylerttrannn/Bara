@@ -5,7 +5,7 @@ import ManagedSettings
 import SwiftUI
 
 enum SelectedActivityMetrics {
-    private static let appGroupSuite = "group.Bara"
+    private static let appGroupSuite = "group.com.Bara.appblocker"
     private static let selectionKey = "bara"
 
     private static let durationFormatter: DateComponentsFormatter = {

@@ -3,7 +3,7 @@ import FamilyControls
 
 struct SettingsView: View {
     private enum DefaultsKey {
-        static let appGroupSuite = "group.Bara"
+        static let appGroupSuite = "group.com.Bara.appblocker"
         static let thresholdMinutes = "bara.threshold.minutes"
     }
 
@@ -182,11 +182,3 @@ private struct ThresholdEditorSheet: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        SettingsView(
-            service: MockPetStateService(settings: SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: true)),
-            onResetDemo: {}
-        )
-    }
-}

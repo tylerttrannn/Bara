@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.Bara</string>
+		<string>group.com.Bara.appblocker</string>
 	</array>
 </dict>
 </plist>

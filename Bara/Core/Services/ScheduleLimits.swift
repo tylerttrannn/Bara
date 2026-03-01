@@ -11,7 +11,7 @@ import DeviceActivity
 import FamilyControls
 
 class ScheduleLimits {
-    private let defaults = UserDefaults(suiteName: "group.Bara")
+    private let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
     private let thresholdMinutesKey = "bara.threshold.minutes"
 
     func startActivity(){
@@ -30,6 +30,7 @@ class ScheduleLimits {
         
         let event = DeviceActivityEvent(
             applications : AppSelectionModel.getSelection().applicationTokens,
+            // HELP
             threshold : DateComponents(hour: thresholdHours, minute: thresholdRemainderMinutes)
         )
    

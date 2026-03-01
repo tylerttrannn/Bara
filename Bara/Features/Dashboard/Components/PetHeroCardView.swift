@@ -45,9 +45,3 @@ struct PetHeroCardView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        PetHeroCardView(mood: .neutral, description: "Capy is okay, but could use a calmer day.")
-            .padding()
-    }
-}

@@ -34,9 +34,9 @@ struct StatsView: View {
                                     .allowsHitTesting(false)
                             }
 
-                            VStack(spacing: Spacing.xSmall) {
+                            VStack(spacing: Spacing.medium) {
                                 DeviceActivityReport(.statsWeeklyTrendChart, filter: weeklyActivityFilter)
-                                    .frame(height: 210, alignment: .top)
+                                    .frame(height: 236, alignment: .top)
                                     .allowsHitTesting(false)
 
                                 DeviceActivityReport(.statsMoodCalendar, filter: moodCalendarActivityFilter)
@@ -132,11 +132,6 @@ struct StatsView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        StatsView(service: MockPetStateService(settings: SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: true)))
-    }
-}
 
 private struct StatsLoadingSplashOverlayView: View {
     @State private var animate = false

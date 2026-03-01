@@ -18,9 +18,3 @@ struct QuickActionsRowView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        QuickActionsRowView(onEditDistractions: {}, onPetCare: {})
-            .padding()
-    }
-}

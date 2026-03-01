@@ -12,7 +12,7 @@ import FamilyControls
 struct TotalActivityView: View {
     let totalActivity: String
     
-    let defaults = UserDefaults(suiteName: "group.Bara")
+    let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
     let alertStore = ManagedSettingsStore()
       
     func decodeSelection() -> FamilyActivitySelection? {

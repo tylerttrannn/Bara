@@ -19,9 +19,3 @@ struct PermissionBannerView: View {
     }
 }
 
-#Preview {
-    PreviewContainer {
-        PermissionBannerView(granted: true)
-            .padding()
-    }
-}

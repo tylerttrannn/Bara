@@ -15,7 +15,3 @@ struct LoadingStateView: View {
         .padding()
     }
 }
-
-#Preview {
-    LoadingStateView(title: "Loading")
-}

@@ -15,7 +15,7 @@ import ManagedSettings
 // Make sure that your class name matches the NSExtensionPrincipalClass in your Info.plist.
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     
-    let defaults = UserDefaults(suiteName: "group.Bara")
+    let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
     let alertStore = ManagedSettingsStore()
     let content = UNMutableNotificationContent()
       
@@ -37,9 +37,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
     }
 
-    override func intervalDidStart(for activity: DeviceActivityName) {
-        super.intervalDidStart(for: activity)
-        
+    override func intervalDidStart(for activity: DeviceActivityName) {        
+        if let selection = decodeSelection() {
+           alertStore.shield.applications = selection.applicationTokens
+           alertStore.shield.applicationCategories = .specific(selection.categoryTokens)
+        }
         // Handle the start of the interval.
     }
     
