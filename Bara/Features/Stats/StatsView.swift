@@ -1,11 +1,13 @@
 import SwiftUI
 import DeviceActivity
 import _DeviceActivity_SwiftUI
+import Toasts
 
 struct StatsView: View {
     @StateObject private var viewModel: StatsViewModel
     @State private var showReportSplash = true
     @State private var splashTask: Task<Void, Never>?
+    @Environment(\.presentToast) private var presentToast
 
     init(service: PetStateProviding) {
         _viewModel = StateObject(wrappedValue: StatsViewModel(service: service))
@@ -66,6 +68,14 @@ struct StatsView: View {
                     .refreshable {
                         showStatsSplash()
                         await viewModel.load()
+                        switch viewModel.state {
+                        case .error(let message):
+                            presentToast(ToastFactory.make(kind: .error, message: message))
+                        case .loaded:
+                            presentToast(ToastFactory.make(kind: .success, message: "Stats updated."))
+                        case .idle, .loading:
+                            break
+                        }
                     }
                 }
             }
@@ -81,6 +91,7 @@ struct StatsView: View {
             .navigationBarTitleDisplayMode(.inline)
 
         }
+        .addToastSafeAreaObserver()
         .task {
             await viewModel.load()
         }

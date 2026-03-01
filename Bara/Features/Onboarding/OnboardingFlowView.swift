@@ -1,5 +1,6 @@
 import SwiftUI
 import FamilyControls
+import Toasts
 
 struct OnboardingFlowView: View {
     private enum DefaultsKey {
@@ -8,6 +9,7 @@ struct OnboardingFlowView: View {
     }
 
     @StateObject private var viewModel = OnboardingViewModel()
+    @Environment(\.presentToast) private var presentToast
     let onFinish: () -> Void
     let onRequestScreenTimePermission: () -> Void
     @State private var activitySelection = FamilyActivitySelection()
@@ -83,6 +85,7 @@ struct OnboardingFlowView: View {
             }
             .padding(Spacing.large)
         }
+        .addToastSafeAreaObserver()
         .familyActivityPicker(
             isPresented: $isPickerPresented,
             selection: $activitySelection
@@ -90,6 +93,7 @@ struct OnboardingFlowView: View {
         .onChange(of: activitySelection) { _, newSelection in
             if !newSelection.applicationTokens.isEmpty || !newSelection.categoryTokens.isEmpty || !newSelection.webDomainTokens.isEmpty {
                 AppSelectionModel.setSelection(activitySelection)
+                presentToast(ToastFactory.make(kind: .success, message: "Distractions saved."))
                 showThresholdPage = true
             }
         }
@@ -110,6 +114,7 @@ struct OnboardingFlowView: View {
                 onContinue: {
                     let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
                     defaults.set(thresholdMinutes, forKey: DefaultsKey.thresholdMinutes)
+                    presentToast(ToastFactory.make(kind: .success, message: "Threshold set to \(thresholdMinutes) min."))
                     showThresholdPage = false
                     onFinish()
                 }
@@ -133,6 +138,7 @@ private struct ScreenTimePermissionInfoView: View {
     let onBack: () -> Void
     let onContinue: () -> Void
     @StateObject var authManager = AuthorizationManager()
+    @Environment(\.presentToast) private var presentToast
 
     var body: some View {
         NavigationStack {
@@ -213,6 +219,18 @@ private struct ScreenTimePermissionInfoView: View {
             }
             .task {
                 await authManager.checkAuthorization()
+            }
+            .onChange(of: authManager.authorizationStatus) { _, newStatus in
+                switch newStatus {
+                case .approved:
+                    presentToast(ToastFactory.make(kind: .success, message: "Screen Time access granted."))
+                case .denied:
+                    presentToast(ToastFactory.make(kind: .error, message: "Screen Time access denied. Enable it in Settings."))
+                case .notDetermined:
+                    break
+                @unknown default:
+                    break
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

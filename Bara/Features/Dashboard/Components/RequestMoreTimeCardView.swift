@@ -8,12 +8,14 @@ struct RequestMoreTimeCardView: View {
     let pendingOutgoingRequest: BorrowRequest?
     let submitState: DashboardViewModel.AsyncActionState
     let pairState: DashboardViewModel.AsyncActionState
+    let unpairState: DashboardViewModel.AsyncActionState
     let disabledReason: String?
 
     let onSelectMinutes: (Int) -> Void
     let onNoteChange: (String) -> Void
     let onInviteCodeChange: (String) -> Void
     let onPair: () -> Void
+    let onUnpair: () -> Void
     let onSubmit: () -> Void
 
     var body: some View {
@@ -36,6 +38,8 @@ struct RequestMoreTimeCardView: View {
 
                 if !profile.isPaired {
                     pairRow
+                } else {
+                    unpairRow
                 }
             } else {
                 Text("Loading your buddy profile...")
@@ -85,6 +89,12 @@ struct RequestMoreTimeCardView: View {
 
             if let requestError = submitState.errorMessage {
                 Text(requestError)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(.red)
+            }
+
+            if let unpairError = unpairState.errorMessage {
+                Text(unpairError)
                     .font(AppTypography.caption)
                     .foregroundStyle(.red)
             }
@@ -164,6 +174,26 @@ struct RequestMoreTimeCardView: View {
                     .font(AppTypography.caption)
                     .foregroundStyle(.red)
             }
+        }
+    }
+
+    private var unpairRow: some View {
+        HStack {
+            Button(role: .destructive) {
+                onUnpair()
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Unpair Buddy")
+                    if unpairState.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.red.opacity(0.85))
+            .disabled(unpairState.isLoading)
         }
     }
 

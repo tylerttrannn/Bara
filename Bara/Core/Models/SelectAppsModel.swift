@@ -10,7 +10,7 @@ import FamilyControls
 
 class AppSelectionModel {
     private static let defaults = AppGroupDefaults.sharedDefaults
-    private static let key = "bara"
+    private static let key = AppGroupDefaults.appSelectionStorageKey
 
     static func setSelection(_ selection: FamilyActivitySelection) {
         let encoder = JSONEncoder()
@@ -30,5 +30,9 @@ class AppSelectionModel {
         
         let decoder = JSONDecoder()
         return (try? decoder.decode(FamilyActivitySelection.self, from: data)) ?? FamilyActivitySelection()
+    }
+
+    static func clearSelection(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
+        defaults.removeObject(forKey: key)
     }
 }

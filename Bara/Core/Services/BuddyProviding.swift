@@ -3,6 +3,8 @@ import Foundation
 protocol BuddyProviding {
     func fetchMyProfile() async throws -> BuddyProfile
     func pairWithInviteCode(_ code: String) async throws -> BuddyProfile
+    func unpairCurrentBuddy() async throws -> BuddyProfile
+    func resetDemoState() async throws -> BuddyProfile
 
     func createBorrowRequest(minutes: Int, note: String?) async throws -> BorrowRequest
     func fetchLatestIncomingPendingRequest() async throws -> BorrowRequest?
@@ -17,17 +19,21 @@ protocol BuddyProviding {
 
 enum BuddyServiceError: LocalizedError {
     case notPaired
+    case alreadyUnpaired
     case invalidInviteCode
     case outgoingRequestAlreadyPending
     case requestExpired
     case forbidden
     case missingConfiguration
+    case resetFailed
     case server(String)
 
     var errorDescription: String? {
         switch self {
         case .notPaired:
             return "Pair with a buddy first."
+        case .alreadyUnpaired:
+            return "You are already unpaired."
         case .invalidInviteCode:
             return "Invite code not found."
         case .outgoingRequestAlreadyPending:
@@ -38,6 +44,8 @@ enum BuddyServiceError: LocalizedError {
             return "You are not allowed to perform that action."
         case .missingConfiguration:
             return "Supabase is not configured yet."
+        case .resetFailed:
+            return "Could not reset demo state right now."
         case .server(let message):
             return message
         }

@@ -32,9 +32,14 @@ struct RootTabView: View {
                 }
                 .accessibilityIdentifier("tab.stats")
 
-            SettingsView(service: service, onResetDemo: {
-                showOnboarding = true
-            })
+            SettingsView(
+                service: service,
+                buddyService: buddyService,
+                allowanceStore: allowanceStore,
+                onResetDemo: {
+                    showOnboarding = true
+                }
+            )
             .tabItem {
                 Label("Settings", systemImage: "gearshape.fill")
             }

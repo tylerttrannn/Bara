@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Toasts
 
 struct AppLaunchContainerView: View {
     let service: PetStateProviding
@@ -21,6 +22,7 @@ struct AppLaunchContainerView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: showSplash)
+        .installToast(position: .bottom)
         .task {
             guard showSplash else { return }
 

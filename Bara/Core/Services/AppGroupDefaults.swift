@@ -2,6 +2,7 @@ import Foundation
 
 enum AppGroupDefaults {
     static let suiteName = "group.com.Bara.appblocker"
+    static let appSelectionStorageKey = "bara"
 
     static let onboardingCompleted = "bara.onboarding.completed"
     static let thresholdMinutes = "bara.threshold.minutes"
@@ -69,5 +70,26 @@ enum AppGroupDefaults {
 
     static func setCachedPointsValue(_ value: Int, defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
         defaults.set(max(0, value), forKey: cachedPoints)
+    }
+
+    static func clearBorrowAndBlockFlags(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
+        defaults.removeObject(forKey: borrowAllowanceMinutes)
+        defaults.removeObject(forKey: borrowAllowanceApprovedAt)
+        defaults.removeObject(forKey: borrowAllowanceExpiresAt)
+        defaults.removeObject(forKey: borrowAllowanceConsumed)
+        defaults.removeObject(forKey: lastAppliedBorrowRequestID)
+        defaults.set(false, forKey: buddyUnblockActive)
+        defaults.set(false, forKey: blockNow)
+        defaults.set(false, forKey: unblockNow)
+    }
+
+    static func clearFocusSetup(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
+        defaults.set(30, forKey: thresholdMinutes)
+        defaults.removeObject(forKey: selectedAppIDs)
+        defaults.removeObject(forKey: appSelectionStorageKey)
+    }
+
+    static func markOnboardingIncomplete(defaults: UserDefaults = AppGroupDefaults.sharedDefaults) {
+        defaults.set(false, forKey: onboardingCompleted)
     }
 }

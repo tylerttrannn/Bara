@@ -56,6 +56,46 @@ final class LocalBuddyService: BuddyProviding {
         return profile
     }
 
+    func unpairCurrentBuddy() async throws -> BuddyProfile {
+        var profile = try await fetchMyProfile()
+        guard let buddyID = profile.buddyID else {
+            throw BuddyServiceError.alreadyUnpaired
+        }
+
+        profile.buddyID = nil
+        profile.buddyDisplayName = nil
+        profile.inviteCode = Self.generateInviteCode()
+
+        var requests = loadRequests()
+        expirePairPendingRequestsIfNeeded(&requests, meID: profile.id, buddyID: buddyID)
+        saveRequests(requests)
+        saveProfile(profile)
+        return profile
+    }
+
+    func resetDemoState() async throws -> BuddyProfile {
+        var profile = try await fetchMyProfile()
+
+        if profile.isPaired {
+            profile = try await unpairCurrentBuddy()
+        }
+
+        profile.health = 100
+        profile.points = 0
+        profile.buddyID = nil
+        profile.buddyDisplayName = nil
+        profile.inviteCode = Self.generateInviteCode()
+
+        defaults.removeObject(forKey: DefaultsKey.requests)
+        saveProfile(profile)
+
+        AppGroupDefaults.clearBorrowAndBlockFlags(defaults: defaults)
+        AppGroupDefaults.clearFocusSetup(defaults: defaults)
+        AppGroupDefaults.markOnboardingIncomplete(defaults: defaults)
+
+        return profile
+    }
+
     func createBorrowRequest(minutes: Int, note: String?) async throws -> BorrowRequest {
         var profile = try await fetchMyProfile()
         guard let buddyID = profile.buddyID else {
@@ -241,6 +281,25 @@ final class LocalBuddyService: BuddyProviding {
             guard request.status == .pending, request.expiresAt <= now else {
                 return request
             }
+            return update(request: request, status: .expired, resolvedAt: now)
+        }
+    }
+
+    private func expirePairPendingRequestsIfNeeded(_ requests: inout [BorrowRequest], meID: UUID, buddyID: UUID) {
+        let now = Date()
+
+        requests = requests.map { request in
+            guard request.status == .pending else {
+                return request
+            }
+
+            let isOutgoing = request.requesterID == meID && request.buddyID == buddyID
+            let isIncoming = request.requesterID == buddyID && request.buddyID == meID
+
+            guard isOutgoing || isIncoming else {
+                return request
+            }
+
             return update(request: request, status: .expired, resolvedAt: now)
         }
     }

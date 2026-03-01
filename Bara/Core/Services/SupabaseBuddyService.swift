@@ -97,6 +97,59 @@ final class SupabaseBuddyService: BuddyProviding {
         return updated
     }
 
+    func unpairCurrentBuddy() async throws -> BuddyProfile {
+        let me = try await fetchMyProfile()
+        guard let buddyID = me.buddyID else {
+            throw BuddyServiceError.alreadyUnpaired
+        }
+
+        let rotatedInviteCode = Self.generateInviteCode()
+
+        _ = try await patchProfile(id: me.id, fields: [
+            "buddy_id": NSNull(),
+            "invite_code": rotatedInviteCode
+        ])
+
+        try await clearBuddyLinkIfStillPaired(buddyID: buddyID, myID: me.id)
+        try await expirePendingRequests(between: me.id, and: buddyID)
+
+        guard var updated = try await fetchProfile(id: me.id) else {
+            throw BuddyServiceError.server("Could not update profile.")
+        }
+
+        updated.buddyDisplayName = nil
+        syncCaches(from: updated)
+        return updated
+    }
+
+    func resetDemoState() async throws -> BuddyProfile {
+        let current = try await fetchMyProfile()
+
+        if current.isPaired {
+            _ = try await unpairCurrentBuddy()
+        }
+
+        let rotatedInviteCode = Self.generateInviteCode()
+        _ = try await patchProfile(id: config.userID, fields: [
+            "health": 100,
+            "points": 0,
+            "invite_code": rotatedInviteCode
+        ])
+
+        guard var updated = try await fetchProfile(id: config.userID) else {
+            throw BuddyServiceError.resetFailed
+        }
+
+        updated.buddyDisplayName = nil
+        syncCaches(from: updated)
+
+        AppGroupDefaults.clearBorrowAndBlockFlags(defaults: defaults)
+        AppGroupDefaults.clearFocusSetup(defaults: defaults)
+        AppGroupDefaults.markOnboardingIncomplete(defaults: defaults)
+
+        return updated
+    }
+
     func createBorrowRequest(minutes: Int, note: String?) async throws -> BorrowRequest {
         let draft = BorrowRequestDraft(minutes: minutes, note: note ?? "")
         try draft.validate()
@@ -380,6 +433,57 @@ final class SupabaseBuddyService: BuddyProviding {
         }
 
         return request
+    }
+
+    private func clearBuddyLinkIfStillPaired(buddyID: UUID, myID: UUID) async throws {
+        let query: [URLQueryItem] = [
+            URLQueryItem(name: "id", value: "eq.\(buddyID.uuidString)"),
+            URLQueryItem(name: "buddy_id", value: "eq.\(myID.uuidString)")
+        ]
+
+        _ = try await perform(
+            method: "PATCH",
+            path: "profiles",
+            query: query,
+            body: ["buddy_id": NSNull()],
+            prefer: "return=minimal"
+        )
+    }
+
+    private func expirePendingRequests(between userID: UUID, and buddyID: UUID) async throws {
+        let now = Self.iso8601WithFractionalSeconds.string(from: Date())
+        let body: [String: Any] = [
+            "status": BorrowRequestStatus.expired.rawValue,
+            "resolved_at": now
+        ]
+
+        let outgoingQuery: [URLQueryItem] = [
+            URLQueryItem(name: "requester_id", value: "eq.\(userID.uuidString)"),
+            URLQueryItem(name: "buddy_id", value: "eq.\(buddyID.uuidString)"),
+            URLQueryItem(name: "status", value: "eq.pending")
+        ]
+
+        _ = try await perform(
+            method: "PATCH",
+            path: "borrow_requests",
+            query: outgoingQuery,
+            body: body,
+            prefer: "return=minimal"
+        )
+
+        let incomingQuery: [URLQueryItem] = [
+            URLQueryItem(name: "requester_id", value: "eq.\(buddyID.uuidString)"),
+            URLQueryItem(name: "buddy_id", value: "eq.\(userID.uuidString)"),
+            URLQueryItem(name: "status", value: "eq.pending")
+        ]
+
+        _ = try await perform(
+            method: "PATCH",
+            path: "borrow_requests",
+            query: incomingQuery,
+            body: body,
+            prefer: "return=minimal"
+        )
     }
 
     private func applyApprovalEffects(requesterID: UUID, buddyID: UUID) async throws {

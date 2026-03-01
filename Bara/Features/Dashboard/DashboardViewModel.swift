@@ -44,6 +44,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var requestSubmitState: AsyncActionState = .idle
     @Published private(set) var pairSubmitState: AsyncActionState = .idle
     @Published private(set) var resolveState: AsyncActionState = .idle
+    @Published private(set) var unpairState: AsyncActionState = .idle
     @Published private(set) var buddySectionError: String?
     @Published private(set) var requestDisabledReason: String?
 
@@ -64,6 +65,7 @@ final class DashboardViewModel: ObservableObject {
     private let scheduleLimits: ScheduleLimits
     private let defaults: UserDefaults
 
+    private var profileObserverTask: Task<Void, Never>?
     private var incomingObserverTask: Task<Void, Never>?
     private var outgoingObserverTask: Task<Void, Never>?
     private var observersStarted = false
@@ -83,6 +85,7 @@ final class DashboardViewModel: ObservableObject {
     }
 
     deinit {
+        profileObserverTask?.cancel()
         incomingObserverTask?.cancel()
         outgoingObserverTask?.cancel()
     }
@@ -151,7 +154,7 @@ final class DashboardViewModel: ObservableObject {
             pairSubmitState = .success
             await refreshBuddySection()
         } catch {
-            pairSubmitState = .error(error.localizedDescription)
+            pairSubmitState = .error(ToastFactory.userMessage(from: error))
         }
     }
 
@@ -166,7 +169,7 @@ final class DashboardViewModel: ObservableObject {
         do {
             try draft.validate()
         } catch {
-            requestSubmitState = .error(error.localizedDescription)
+            requestSubmitState = .error(ToastFactory.userMessage(from: error))
             return
         }
 
@@ -183,7 +186,7 @@ final class DashboardViewModel: ObservableObject {
             requestSubmitState = .success
             await refreshBuddySection()
         } catch {
-            requestSubmitState = .error(error.localizedDescription)
+            requestSubmitState = .error(ToastFactory.userMessage(from: error))
             recalculateRequestDisabledReason()
         }
     }
@@ -194,6 +197,28 @@ final class DashboardViewModel: ObservableObject {
 
     func denyIncomingRequest() async {
         await resolveIncomingRequest(with: .deny)
+    }
+
+    func unpairBuddy() async {
+        guard buddyProfile?.isPaired == true else {
+            unpairState = .error(BuddyServiceError.alreadyUnpaired.localizedDescription)
+            return
+        }
+
+        unpairState = .loading
+
+        do {
+            let profile = try await buddyService.unpairCurrentBuddy()
+            buddyProfile = profile
+            incomingPendingRequest = nil
+            latestOutgoingRequest = nil
+            requestNote = ""
+            inviteCode = ""
+            unpairState = .success
+            await refreshBuddySection()
+        } catch {
+            unpairState = .error(ToastFactory.userMessage(from: error))
+        }
     }
 
     private func resolveIncomingRequest(with decision: BorrowRequestDecision) async {
@@ -208,13 +233,30 @@ final class DashboardViewModel: ObservableObject {
             resolveState = .success
             await refreshBuddySection()
         } catch {
-            resolveState = .error(error.localizedDescription)
+            resolveState = .error(ToastFactory.userMessage(from: error))
         }
     }
 
     private func startObserversIfNeeded() {
         guard !observersStarted else { return }
         observersStarted = true
+
+        profileObserverTask = Task { [weak self] in
+            guard let self else { return }
+
+            while !Task.isCancelled {
+                do {
+                    let profile = try await buddyService.fetchMyProfile()
+                    self.buddyProfile = profile
+                    self.syncScoreCache(with: profile)
+                    self.recalculateRequestDisabledReason()
+                } catch {
+                    self.buddySectionError = error.localizedDescription
+                }
+
+                try? await Task.sleep(for: .seconds(3))
+            }
+        }
 
         incomingObserverTask = Task { [weak self] in
             guard let self else { return }

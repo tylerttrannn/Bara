@@ -1,9 +1,18 @@
 import SwiftUI
 import DeviceActivity
 import _DeviceActivity_SwiftUI
+import Toasts
 
 struct DashboardView: View {
+    private enum ResolveAction {
+        case approve
+        case deny
+    }
+
     @StateObject private var viewModel: DashboardViewModel
+    @State private var lastResolveAction: ResolveAction?
+    @State private var showUnpairConfirmation = false
+    @Environment(\.presentToast) private var presentToast
 
     init(
         service: PetStateProviding,
@@ -69,24 +78,86 @@ struct DashboardView: View {
                 }
             }
         }
+        .addToastSafeAreaObserver()
         .task {
             await viewModel.load()
+        }
+        .onChange(of: viewModel.pairSubmitState) { _, newState in
+            switch newState {
+            case .success:
+                presentToast(ToastFactory.make(kind: .success, message: "Buddy paired successfully."))
+            case .error(let message):
+                presentToast(ToastFactory.make(kind: .error, message: message))
+            case .idle, .loading:
+                break
+            }
+        }
+        .onChange(of: viewModel.requestSubmitState) { _, newState in
+            switch newState {
+            case .success:
+                presentToast(ToastFactory.make(kind: .success, message: "Request sent to your buddy."))
+            case .error(let message):
+                presentToast(ToastFactory.make(kind: .error, message: message))
+            case .idle, .loading:
+                break
+            }
+        }
+        .onChange(of: viewModel.resolveState) { _, newState in
+            switch newState {
+            case .success:
+                let message = lastResolveAction == .approve ? "Request approved." : "Request denied."
+                presentToast(ToastFactory.make(kind: .success, message: message))
+                lastResolveAction = nil
+            case .error(let message):
+                presentToast(ToastFactory.make(kind: .error, message: message))
+                lastResolveAction = nil
+            case .idle, .loading:
+                break
+            }
+        }
+        .onChange(of: viewModel.unpairState) { _, newState in
+            switch newState {
+            case .success:
+                presentToast(ToastFactory.make(kind: .success, message: "Unpaired. You can now pair with someone else."))
+            case .error(let message):
+                presentToast(ToastFactory.make(kind: .error, message: message))
+            case .idle, .loading:
+                break
+            }
+        }
+        .confirmationDialog(
+            "Unpair buddy?",
+            isPresented: $showUnpairConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Unpair Buddy", role: .destructive) {
+                Task { await viewModel.unpairBuddy() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will unlink both users and expire pending buddy requests.")
         }
     }
 
     private var buddySection: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
-            Text("Buddy Time Exchange")
-                .font(AppTypography.subtitle)
+            HStack(alignment: .center) {
+                Text("Buddy Time Exchange")
+                    .font(AppTypography.subtitle)
+                Spacer()
+                buddyStatusBadge
+            }
 
             IncomingBuddyRequestCardView(
                 request: viewModel.incomingPendingRequest,
                 isResolving: viewModel.resolveState.isLoading,
                 resolveError: viewModel.resolveState.errorMessage,
                 onDeny: {
+                    lastResolveAction = .deny
                     Task { await viewModel.denyIncomingRequest() }
                 },
                 onApprove: {
+                    lastResolveAction = .approve
                     Task { await viewModel.approveIncomingRequest() }
                 }
             )
@@ -99,6 +170,7 @@ struct DashboardView: View {
                 pendingOutgoingRequest: viewModel.pendingOutgoingRequest,
                 submitState: viewModel.requestSubmitState,
                 pairState: viewModel.pairSubmitState,
+                unpairState: viewModel.unpairState,
                 disabledReason: viewModel.requestDisabledReason,
                 onSelectMinutes: { viewModel.selectedRequestMinutes = $0 },
                 onNoteChange: { value in
@@ -109,6 +181,9 @@ struct DashboardView: View {
                 },
                 onPair: {
                     Task { await viewModel.pairWithInviteCode() }
+                },
+                onUnpair: {
+                    showUnpairConfirmation = true
                 },
                 onSubmit: {
                     Task { await viewModel.submitBorrowRequest() }
@@ -121,6 +196,28 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private var buddyStatusBadge: some View {
+        let isLoaded = viewModel.buddyProfile != nil
+        let isPaired = viewModel.buddyProfile?.isPaired == true
+
+        let title = isLoaded ? (isPaired ? "Paired" : "Unpaired") : "Checking"
+        let icon = isLoaded ? (isPaired ? "link.circle.fill" : "link.badge.plus") : "clock"
+        let tint: Color = isLoaded ? (isPaired ? AppColors.accentGreen : AppColors.moodDistressed) : .secondary
+
+        return HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(title)
+        }
+        .font(AppTypography.caption.weight(.semibold))
+        .foregroundStyle(tint)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(tint.opacity(0.14))
+        )
     }
 
     private var todayActivityFilter: DeviceActivityFilter {

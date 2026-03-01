@@ -18,7 +18,7 @@ final class StatsViewModel: ObservableObject {
             let snapshot = try await service.fetchStatsSnapshot()
             state = .loaded(snapshot)
         } catch {
-            state = .error("Unable to load trend stats.")
+            state = .error(ToastFactory.userMessage(from: error))
         }
     }
 }
