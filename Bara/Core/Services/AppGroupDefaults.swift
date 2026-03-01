@@ -20,6 +20,9 @@ enum AppGroupDefaults {
     static let borrowAllowanceApprovedAt = "bara.borrow.allowance.approvedAt"
     static let borrowAllowanceExpiresAt = "bara.borrow.allowance.expiresAt"
     static let borrowAllowanceConsumed = "bara.borrow.allowance.consumed"
+    static let buddyUnblockActive = "bara.buddy.unblock.active"
+    static let borrowApprovalRequesterPointsPenalty = 15
+    static let borrowApprovalBuddyPointsReward = 10
 
     static let supabaseURL = "bara.supabase.url"
     static let supabaseAnonKey = "bara.supabase.anonKey"

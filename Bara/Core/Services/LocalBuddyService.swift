@@ -184,15 +184,15 @@ final class LocalBuddyService: BuddyProviding {
             try incrementApprovalsUsed(for: request.requesterID)
 
             var meUpdated = me
-            meUpdated.points += 10
+            meUpdated.points += AppGroupDefaults.borrowApprovalBuddyPointsReward
             saveProfile(meUpdated)
             AppGroupDefaults.setCachedPointsValue(meUpdated.points, defaults: defaults)
 
             if request.requesterID == meUpdated.id {
-                let nextHealth = max(0, meUpdated.health - 5)
-                meUpdated.health = nextHealth
+                let nextPoints = max(0, meUpdated.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
+                meUpdated.points = nextPoints
                 saveProfile(meUpdated)
-                AppGroupDefaults.setCachedHealthValue(nextHealth, defaults: defaults)
+                AppGroupDefaults.setCachedPointsValue(nextPoints, defaults: defaults)
             }
         }
 

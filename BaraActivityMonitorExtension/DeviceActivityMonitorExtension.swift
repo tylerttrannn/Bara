@@ -14,6 +14,15 @@ import ManagedSettings
 // Optionally override any of the functions below.
 // Make sure that your class name matches the NSExtensionPrincipalClass in your Info.plist.
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
+    private enum Names {
+        static let baseActivity = DeviceActivityName("baraLimit")
+        static let borrowActivity = DeviceActivityName("baraBorrowLimit")
+    }
+
+    private enum DefaultsKey {
+        static let selection = "bara"
+        static let buddyUnblockActive = "bara.buddy.unblock.active"
+    }
     
     let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
     let alertStore = ManagedSettingsStore()
@@ -24,7 +33,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             return nil
         }
 
-        guard let data = defaults.data(forKey: "bara") else {
+        guard let data = defaults.data(forKey: DefaultsKey.selection) else {
             return nil
         }
 
@@ -37,23 +46,37 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
     }
 
-    override func intervalDidStart(for activity: DeviceActivityName) {        
+    override func intervalDidStart(for activity: DeviceActivityName) {
+        if isBuddyUnblockActive() {
+            clearShields()
+            return
+        }
         clearShields()
     }
     
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
         clearShields()
+        if activity == Names.borrowActivity {
+            setBuddyUnblockActive(false)
+        }
     }
     
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
-        
-        if let selection = decodeSelection() {
-           alertStore.shield.applications = selection.applicationTokens
-           alertStore.shield.applicationCategories = .specific(selection.categoryTokens)
-           alertStore.shield.webDomains = selection.webDomainTokens
+        let unblockActive = isBuddyUnblockActive()
+
+        if !unblockActive {
+            applyShieldsIfSelectionExists()
+            return
         }
-                
+
+        if activity == Names.borrowActivity {
+            setBuddyUnblockActive(false)
+            applyShieldsIfSelectionExists()
+            return
+        }
+
+        // During active buddy unblock, ignore non-borrow threshold events.
     }
     
     override func intervalWillStartWarning(for activity: DeviceActivityName) {
@@ -78,5 +101,20 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         alertStore.shield.applications = nil
         alertStore.shield.applicationCategories = nil
         alertStore.shield.webDomains = nil
+    }
+
+    private func applyShieldsIfSelectionExists() {
+        guard let selection = decodeSelection() else { return }
+        alertStore.shield.applications = selection.applicationTokens.isEmpty ? nil : selection.applicationTokens
+        alertStore.shield.applicationCategories = selection.categoryTokens.isEmpty ? nil : .specific(selection.categoryTokens)
+        alertStore.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : selection.webDomainTokens
+    }
+
+    private func isBuddyUnblockActive() -> Bool {
+        defaults?.bool(forKey: DefaultsKey.buddyUnblockActive) == true
+    }
+
+    private func setBuddyUnblockActive(_ value: Bool) {
+        defaults?.set(value, forKey: DefaultsKey.buddyUnblockActive)
     }
 }

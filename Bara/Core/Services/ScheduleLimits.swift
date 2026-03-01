@@ -31,6 +31,7 @@ class ScheduleLimits {
 
     func startActivity() {
         let monitor = DeviceActivityCenter()
+        defaults.set(false, forKey: AppGroupDefaults.buddyUnblockActive)
 
         let baseThreshold = max(defaults.integer(forKey: AppGroupDefaults.thresholdMinutes), 1)
         let effectiveThreshold = baseThreshold
@@ -89,6 +90,7 @@ class ScheduleLimits {
         )
 
         do {
+            defaults.set(true, forKey: AppGroupDefaults.buddyUnblockActive)
             clearAllShields()
 
             try monitor.startMonitoring(
@@ -101,9 +103,15 @@ class ScheduleLimits {
             print("borrow allowance activated for \(bonusMinutes)m")
             return true
         } catch {
+            defaults.set(false, forKey: AppGroupDefaults.buddyUnblockActive)
             print("error activating borrow allowance \(error.localizedDescription)")
             return false
         }
+    }
+
+    func clearShieldsAndDisableBuddyUnblock() {
+        defaults.set(false, forKey: AppGroupDefaults.buddyUnblockActive)
+        clearAllShields()
     }
 
     private func thresholdComponents(for minutes: Int) -> DateComponents {

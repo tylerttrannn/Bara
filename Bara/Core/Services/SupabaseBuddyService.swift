@@ -457,16 +457,16 @@ final class SupabaseBuddyService: BuddyProviding {
 
     private func applyApprovalEffects(requesterID: UUID, buddyID: UUID) async throws {
         if var requester = try await fetchProfile(id: requesterID) {
-            requester.health = max(0, requester.health - 5)
-            _ = try await patchProfile(id: requester.id, fields: ["health": requester.health])
+            requester.points = max(0, requester.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
+            _ = try await patchProfile(id: requester.id, fields: ["points": requester.points])
 
             if requesterID == config.userID {
-                AppGroupDefaults.setCachedHealthValue(requester.health, defaults: defaults)
+                AppGroupDefaults.setCachedPointsValue(requester.points, defaults: defaults)
             }
         }
 
         if var buddy = try await fetchProfile(id: buddyID) {
-            buddy.points += 10
+            buddy.points += AppGroupDefaults.borrowApprovalBuddyPointsReward
             _ = try await patchProfile(id: buddy.id, fields: ["points": buddy.points])
 
             if buddyID == config.userID {
