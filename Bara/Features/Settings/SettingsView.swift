@@ -60,14 +60,14 @@ struct SettingsView: View {
                     }
 
                     if viewModel.buddyProfile?.isPaired == true {
-                        Text("Buddy")
+                        Text("Friend")
                             .font(AppTypography.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, Spacing.small)
 
                         SettingRowView(
-                            title: "Unpair Buddy",
+                            title: "Remove Friend",
                             subtitle: "Unlink both users and expire pending requests."
                         ) {
                             settingsActionButton(
@@ -163,7 +163,7 @@ struct SettingsView: View {
             switch newState {
             case .success:
                 Haptics.notify(.success)
-                presentToast(ToastFactory.make(kind: .success, message: "Unpaired. You can now pair with someone else."))
+                presentToast(ToastFactory.make(kind: .success, message: "Friend removed. You can now connect with someone else."))
             case .error(let message):
                 Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
@@ -185,17 +185,17 @@ struct SettingsView: View {
             }
         }
         .confirmationDialog(
-            "Unpair buddy?",
+            "Remove friend?",
             isPresented: $showUnpairConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Unpair Buddy", role: .destructive) {
+            Button("Remove Friend", role: .destructive) {
                 Haptics.impact(.medium)
                 Task { await viewModel.unpairBuddy() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will unlink both users and expire pending buddy requests.")
+            Text("This will unlink both users and expire pending Friend Pass requests.")
         }
         .confirmationDialog(
             "Reset demo state?",

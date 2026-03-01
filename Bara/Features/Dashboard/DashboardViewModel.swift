@@ -141,7 +141,7 @@ final class DashboardViewModel: ObservableObject {
     func pairWithInviteCode() async {
         let rawCode = inviteCode.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !rawCode.isEmpty else {
-            pairSubmitState = .error("Enter your buddy's invite code.")
+            pairSubmitState = .error("Enter your friend's code.")
             return
         }
 
@@ -324,12 +324,12 @@ final class DashboardViewModel: ObservableObject {
         }
 
         guard let buddyProfile else {
-            requestDisabledReason = "Loading buddy status..."
+            requestDisabledReason = "Loading friend status..."
             return
         }
 
         guard buddyProfile.isPaired else {
-            requestDisabledReason = "Pair with a buddy to request more time."
+            requestDisabledReason = "Connect a friend to request more time."
             return
         }
 

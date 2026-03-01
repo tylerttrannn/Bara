@@ -43,7 +43,7 @@ struct RequestMoreTimeCardView: View {
                     unpairRow
                 }
             } else {
-                Text("Loading your buddy profile...")
+                Text("Loading your friend profile...")
                     .font(AppTypography.caption)
                     .foregroundStyle(.secondary)
             }
@@ -110,7 +110,7 @@ struct RequestMoreTimeCardView: View {
                 onSubmit()
             } label: {
                 HStack {
-                    Text("Request from Buddy")
+                    Text("Request a Friend Pass")
                     if submitState.isLoading {
                         Spacer()
                         ProgressView()
@@ -162,13 +162,13 @@ struct RequestMoreTimeCardView: View {
 
     private var pairRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Pair with your buddy using their invite code")
+            Text("Connect a friend with their code")
                 .font(AppTypography.caption)
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
                 TextField(
-                    "Invite code",
+                    "Friend code",
                     text: Binding(get: { inviteCode }, set: { onInviteCodeChange($0.uppercased()) })
                 )
                 .textInputAutocapitalization(.characters)
@@ -177,7 +177,7 @@ struct RequestMoreTimeCardView: View {
                 .background(Color.white.opacity(0.7))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                Button("Pair") {
+                Button("Connect") {
                     Haptics.impact(.light)
                     onPair()
                 }
@@ -201,7 +201,7 @@ struct RequestMoreTimeCardView: View {
                 onUnpair()
             } label: {
                 HStack(spacing: 6) {
-                    Text("Unpair Buddy")
+                    Text("Remove Friend")
                     if unpairState.isLoading {
                         ProgressView()
                             .tint(.white)
@@ -217,7 +217,7 @@ struct RequestMoreTimeCardView: View {
 
     private func inviteCodeRow(inviteCode: String) -> some View {
         HStack(spacing: 6) {
-            Text("Your code:")
+            Text("Your friend code:")
                 .font(AppTypography.caption)
                 .foregroundStyle(.secondary)
 

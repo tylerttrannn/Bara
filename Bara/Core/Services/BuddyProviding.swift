@@ -31,9 +31,9 @@ enum BuddyServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notPaired:
-            return "Pair with a buddy first."
+            return "Connect a friend first."
         case .alreadyUnpaired:
-            return "You are already unpaired."
+            return "No friend connected."
         case .invalidInviteCode:
             return "Invite code not found."
         case .outgoingRequestAlreadyPending:

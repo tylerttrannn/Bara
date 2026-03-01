@@ -23,7 +23,7 @@ struct IncomingBuddyRequestCardView: View {
             }
 
             if let request {
-                Text("\(request.requesterDisplayName ?? "Your buddy") asked for \(request.minutesRequested) min")
+                Text("\(request.requesterDisplayName ?? "Your friend") asked for \(request.minutesRequested) min")
                     .font(AppTypography.body)
 
                 if let note = request.note, !note.isEmpty {

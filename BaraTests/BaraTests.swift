@@ -58,7 +58,7 @@ struct BaraTests {
 
         await vm.refreshBuddySection()
 
-        #expect(vm.requestDisabledReason == "Pair with a buddy to request more time.")
+        #expect(vm.requestDisabledReason == "Connect a friend to request more time.")
         #expect(vm.canSubmitRequest == false)
     }
 
@@ -166,6 +166,14 @@ private final class StubBuddyService: BuddyProviding {
     }
 
     func pairWithInviteCode(_ code: String) async throws -> BuddyProfile {
+        profile
+    }
+
+    func unpairCurrentBuddy() async throws -> BuddyProfile {
+        profile
+    }
+
+    func resetDemoState() async throws -> BuddyProfile {
         profile
     }
 

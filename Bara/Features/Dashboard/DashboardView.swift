@@ -87,7 +87,7 @@ struct DashboardView: View {
             switch newState {
             case .success:
                 Haptics.notify(.success)
-                presentToast(ToastFactory.make(kind: .success, message: "Buddy paired successfully."))
+                presentToast(ToastFactory.make(kind: .success, message: "Friend connected successfully."))
             case .error(let message):
                 Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
@@ -99,7 +99,7 @@ struct DashboardView: View {
             switch newState {
             case .success:
                 Haptics.notify(.success)
-                presentToast(ToastFactory.make(kind: .success, message: "Request sent to your buddy."))
+                presentToast(ToastFactory.make(kind: .success, message: "Friend Pass request sent."))
             case .error(let message):
                 Haptics.notify(.error)
                 presentToast(ToastFactory.make(kind: .error, message: message))
@@ -110,7 +110,7 @@ struct DashboardView: View {
         .onChange(of: viewModel.resolveState) { _, newState in
             switch newState {
             case .success:
-                let message = lastResolveAction == .approve ? "Request approved." : "Request denied."
+                let message = lastResolveAction == .approve ? "Friend Pass approved." : "Friend Pass denied."
                 Haptics.notify(lastResolveAction == .approve ? .success : .warning)
                 presentToast(ToastFactory.make(kind: .success, message: message))
                 lastResolveAction = nil
@@ -140,29 +140,29 @@ struct DashboardView: View {
             presentToast(
                 ToastFactory.make(
                     kind: .success,
-                    message: "Buddy approved \(approvedRequest.minutesRequested) extra minutes."
+                    message: "Friend approved \(approvedRequest.minutesRequested) extra minutes."
                 )
             )
         }
         .confirmationDialog(
-            "Unpair buddy?",
+            "Remove friend?",
             isPresented: $showUnpairConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Unpair Buddy", role: .destructive) {
+            Button("Remove Friend", role: .destructive) {
                 Haptics.impact(.medium)
                 Task { await viewModel.unpairBuddy() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will unlink both users and expire pending buddy requests.")
+            Text("This will unlink both users and expire pending Friend Pass requests.")
         }
     }
 
     private var buddySection: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
             HStack(alignment: .center) {
-                Text("Buddy Time Exchange")
+                Text("Friend Pass")
                     .font(AppTypography.subtitle)
                 Spacer()
                 buddyStatusBadge
@@ -222,7 +222,7 @@ struct DashboardView: View {
         let isLoaded = viewModel.buddyProfile != nil
         let isPaired = viewModel.buddyProfile?.isPaired == true
 
-        let title = isLoaded ? (isPaired ? "Paired" : "Unpaired") : "Checking"
+        let title = isLoaded ? (isPaired ? "Connected" : "No friend") : "Checking"
         let icon = isLoaded ? (isPaired ? "link.circle.fill" : "link.badge.plus") : "clock"
         let tint: Color = isLoaded ? (isPaired ? AppColors.accentGreen : AppColors.moodDistressed) : .secondary
 

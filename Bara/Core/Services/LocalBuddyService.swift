@@ -51,7 +51,7 @@ final class LocalBuddyService: BuddyProviding {
 
         var profile = try await fetchMyProfile()
         profile.buddyID = Self.uuid(fromInviteCode: normalized)
-        profile.buddyDisplayName = "Buddy"
+        profile.buddyDisplayName = "Friend"
         saveProfile(profile)
         return profile
     }
