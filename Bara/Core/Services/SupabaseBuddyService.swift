@@ -305,20 +305,31 @@ final class SupabaseBuddyService: BuddyProviding {
             "health": AppGroupDefaults.cachedHealthValue(defaults: defaults)
         ]
 
-        let data = try await perform(
-            method: "POST",
-            path: "profiles",
-            query: [],
-            body: payload,
-            prefer: "return=representation"
-        )
+        do {
+            // Idempotent write: avoids duplicate primary key failures if profile creation races.
+            let data = try await perform(
+                method: "POST",
+                path: "profiles",
+                query: [URLQueryItem(name: "on_conflict", value: "id")],
+                body: payload,
+                prefer: "return=representation,resolution=merge-duplicates"
+            )
 
-        guard let profile = try decode([BuddyProfile].self, from: data).first else {
-            throw BuddyServiceError.server("Could not create profile.")
+            guard let profile = try decode([BuddyProfile].self, from: data).first else {
+                throw BuddyServiceError.server("Could not create profile.")
+            }
+
+            defaults.set(inviteCode, forKey: AppGroupDefaults.localInviteCode)
+            return profile
+        } catch {
+            // Safety fallback for eventual consistency or duplicate-write races.
+            if let existing = try? await fetchProfile(id: config.userID) {
+                defaults.set(existing.inviteCode, forKey: AppGroupDefaults.localInviteCode)
+                return existing
+            }
+
+            throw error
         }
-
-        defaults.set(inviteCode, forKey: AppGroupDefaults.localInviteCode)
-        return profile
     }
 
     private func fetchProfile(id: UUID) async throws -> BuddyProfile? {

@@ -11,6 +11,7 @@ struct TopAppUsageEntry: Identifiable, Hashable {
 
 struct StatsTopAppsReportView: View {
     let topApps: [TopAppUsageEntry]
+    private let appIconSize: CGFloat = 30
 
     private let formatter: DateComponentsFormatter = {
         let value = DateComponentsFormatter()
@@ -50,13 +51,13 @@ struct StatsTopAppsReportView: View {
                         if let token = app.token {
                             Label(token)
                                 .labelStyle(.iconOnly)
-                                .frame(width: 20, height: 20)
-                                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                                .frame(width: appIconSize, height: appIconSize)
+                                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                         } else {
                             Image(systemName: "app.fill")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(.secondary)
-                                .frame(width: 20, height: 20)
+                                .frame(width: appIconSize, height: appIconSize)
                         }
 
                         Text(app.name)
