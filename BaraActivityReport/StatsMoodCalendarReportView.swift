@@ -64,7 +64,9 @@ struct MoodCalendarWeek: Identifiable, Hashable, Sendable {
 struct StatsMoodCalendarReportView: View {
     let weeks: [MoodCalendarWeek]
     @State private var selectedWeekIndex: Int
+    @State private var transitionEdge: Edge = .trailing
     @Environment(\.displayScale) private var displayScale
+    private let weekChangeAnimation = Animation.interactiveSpring(response: 0.36, dampingFraction: 0.84, blendDuration: 0.16)
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
     private let monthShortFormatter: DateFormatter = {
@@ -113,26 +115,52 @@ struct StatsMoodCalendarReportView: View {
         selectedWeekIndex < max(weeks.count - 1, 0)
     }
 
-    private func goToPreviousWeek() {
-        guard canGoPreviousWeek else { return }
-        selectedWeekIndex -= 1
+    @discardableResult
+    private func goToPreviousWeek(emitHaptic: Bool = false) -> Bool {
+        guard canGoPreviousWeek else { return false }
+        transitionEdge = .leading
+        withAnimation(weekChangeAnimation) {
+            selectedWeekIndex -= 1
+        }
+        if emitHaptic {
+            triggerSwipeHaptic()
+        }
+        return true
     }
 
-    private func goToNextWeek() {
-        guard canGoNextWeek else { return }
-        selectedWeekIndex += 1
+    @discardableResult
+    private func goToNextWeek(emitHaptic: Bool = false) -> Bool {
+        guard canGoNextWeek else { return false }
+        transitionEdge = .trailing
+        withAnimation(weekChangeAnimation) {
+            selectedWeekIndex += 1
+        }
+        if emitHaptic {
+            triggerSwipeHaptic()
+        }
+        return true
     }
 
     private func handleHorizontalSwipe(translation: CGSize) {
         // Keep horizontal swipe intentional so vertical page scrolling stays smooth.
-        guard abs(translation.width) > abs(translation.height) * 1.35,
-              abs(translation.width) > 36 else { return }
+        guard abs(translation.width) > abs(translation.height) * 1.2,
+              abs(translation.width) > 24 else { return }
 
         if translation.width < 0 {
-            goToNextWeek()
+            _ = goToNextWeek(emitHaptic: true)
         } else {
-            goToPreviousWeek()
+            _ = goToPreviousWeek(emitHaptic: true)
         }
+    }
+
+    private func triggerSwipeHaptic() {
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.prepare()
+        generator.impactOccurred(intensity: 1.0)
+    }
+
+    private var reverseTransitionEdge: Edge {
+        transitionEdge == .trailing ? .leading : .trailing
     }
 
     @ViewBuilder
@@ -169,7 +197,7 @@ struct StatsMoodCalendarReportView: View {
 
                 HStack(spacing: 8) {
                     Button {
-                        goToPreviousWeek()
+                        _ = goToPreviousWeek(emitHaptic: true)
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 12, weight: .semibold))
@@ -182,7 +210,7 @@ struct StatsMoodCalendarReportView: View {
                     .opacity(canGoPreviousWeek ? 1 : 0.35)
 
                     Button {
-                        goToNextWeek()
+                        _ = goToNextWeek(emitHaptic: true)
                     } label: {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12, weight: .semibold))
@@ -195,40 +223,43 @@ struct StatsMoodCalendarReportView: View {
                     .opacity(canGoNextWeek ? 1 : 0.35)
                 }
             }
-            .contentShape(Rectangle())
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 22)
-                    .onEnded { value in
-                        handleHorizontalSwipe(translation: value.translation)
-                    }
-            )
 
             if let currentWeek {
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(currentWeek.days) { day in
-                        VStack(spacing: 6) {
-                            moodImage(for: day.mood)
-                                .frame(width: 34, height: 34)
+                ZStack {
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(currentWeek.days) { day in
+                            VStack(spacing: 6) {
+                                moodImage(for: day.mood)
+                                    .frame(width: 34, height: 34)
 
-                            Text(monthShortFormatter.string(from: day.dayStart).uppercased())
-                                .font(.system(size: 8, weight: .bold, design: .rounded))
-                                .foregroundStyle(.secondary)
+                                Text(monthShortFormatter.string(from: day.dayStart).uppercased())
+                                    .font(.system(size: 8, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.secondary)
 
-                            Text(dayFormatter.string(from: day.dayStart))
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                Text(dayFormatter.string(from: day.dayStart))
+                                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                            }
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Color(red: 0.98, green: 0.95, blue: 0.89))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                            )
                         }
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Color(red: 0.98, green: 0.95, blue: 0.89))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color.black.opacity(0.06), lineWidth: 1)
-                        )
                     }
+                    .id(currentWeek.id)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: transitionEdge).combined(with: .opacity),
+                            removal: .move(edge: reverseTransitionEdge).combined(with: .opacity)
+                        )
+                    )
                 }
+                .clipped()
             } else {
                 Text("No data yet")
                     .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -245,6 +276,13 @@ struct StatsMoodCalendarReportView: View {
                 .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 22)
+            .onEnded { value in
+                handleHorizontalSwipe(translation: value.translation)
+            }
+        )
         .onChange(of: weeks.count) { _, _ in
             selectedWeekIndex = min(selectedWeekIndex, max(weeks.count - 1, 0))
         }

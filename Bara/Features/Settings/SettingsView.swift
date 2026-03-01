@@ -12,6 +12,7 @@ struct SettingsView: View {
     @Environment(\.presentToast) private var presentToast
     let onResetDemo: () -> Void
     @State private var activitySelection = AppSelectionModel.getSelection()
+    @State private var activitySelectionBeforeEditData: Data?
     @State private var isPickerPresented = false
     @State private var showThresholdEditor = false
     @State private var showUnpairConfirmation = false
@@ -42,21 +43,10 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.medium) {
-                    SettingRowView(title: "Notifications", subtitle: "Mock local reminder toggle") {
-                        Toggle("Notifications", isOn: Binding(
-                            get: { viewModel.settings.notificationsEnabled },
-                            set: { viewModel.setNotifications($0) }
-                        ))
-                        .labelsHidden()
-                    }
-
-                    SettingRowView(title: "Buddy Status", subtitle: buddyStatusSubtitle) {
-                        buddyStatusBadge
-                    }
-
                     SettingRowView(title: "Edit Distractions", subtitle: "Open app/category selector") {
                         settingsActionButton("Edit") {
                             Haptics.impact(.light)
+                            activitySelectionBeforeEditData = encodedSelection(activitySelection)
                             isPickerPresented = true
                         }
                     }
@@ -139,11 +129,24 @@ struct SettingsView: View {
             .onChange(of: activitySelection) { _, newSelection in
                 AppSelectionModel.setSelection(newSelection)
             }
+            .onChange(of: isPickerPresented) { _, isPresented in
+                guard !isPresented else { return }
+
+                let before = activitySelectionBeforeEditData
+                let after = encodedSelection(activitySelection)
+                activitySelectionBeforeEditData = nil
+
+                if before != nil, before != after {
+                    Haptics.notify(.success)
+                    presentToast(ToastFactory.make(kind: .success, message: "Distraction selection saved."))
+                }
+            }
             .sheet(isPresented: $showThresholdEditor) {
                 ThresholdEditorSheet(
                     thresholdMinutes: $thresholdMinutes,
                     onSave: { savedMinutes in
                         saveThresholdToDefaults(savedMinutes)
+                        Haptics.notify(.success)
                         presentToast(ToastFactory.make(kind: .success, message: "Threshold saved: \(savedMinutes) min."))
                     }
                 )
@@ -209,40 +212,6 @@ struct SettingsView: View {
         }
     }
 
-    private var buddyStatusSubtitle: String {
-        guard let profile = viewModel.buddyProfile else {
-            return "Checking pairing status..."
-        }
-
-        if profile.isPaired {
-            return "You are linked with your buddy."
-        }
-
-        return "Not linked yet."
-    }
-
-    private var buddyStatusBadge: some View {
-        let isLoaded = viewModel.buddyProfile != nil
-        let isPaired = viewModel.buddyProfile?.isPaired == true
-
-        let title = isLoaded ? (isPaired ? "Paired" : "Unpaired") : "Checking"
-        let icon = isLoaded ? (isPaired ? "link.circle.fill" : "link.badge.plus") : "clock"
-        let tint: Color = isLoaded ? (isPaired ? AppColors.accentGreen : AppColors.moodDistressed) : .secondary
-
-        return HStack(spacing: 6) {
-            Image(systemName: icon)
-            Text(title)
-        }
-        .font(AppTypography.caption.weight(.semibold))
-        .foregroundStyle(tint)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(tint.opacity(0.14))
-        )
-    }
-
     private func loadThresholdFromDefaults() {
         let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
         let value = defaults.integer(forKey: DefaultsKey.thresholdMinutes)
@@ -252,6 +221,10 @@ struct SettingsView: View {
     private func saveThresholdToDefaults(_ value: Int) {
         let defaults = UserDefaults(suiteName: DefaultsKey.appGroupSuite) ?? .standard
         defaults.set(value, forKey: DefaultsKey.thresholdMinutes)
+    }
+
+    private func encodedSelection(_ selection: FamilyActivitySelection) -> Data? {
+        try? JSONEncoder().encode(selection)
     }
 
     private func settingsActionButton(
