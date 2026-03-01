@@ -15,13 +15,13 @@ import ManagedSettings
 // Make sure that your class name matches the NSExtensionPrincipalClass in your Info.plist.
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private enum Names {
-        static let baseActivity = DeviceActivityName("baraLimit")
         static let borrowActivity = DeviceActivityName("baraBorrowLimit")
     }
 
     private enum DefaultsKey {
         static let selection = "bara"
         static let buddyUnblockActive = "bara.buddy.unblock.active"
+        static let blockNow = "blocknow"
     }
     
     let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
@@ -47,10 +47,17 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
 
     override func intervalDidStart(for activity: DeviceActivityName) {
+        // One-shot manual block trigger from app-side Settings button.
+        if consumeBlockNowIfNeeded() {
+            applyShieldsIfSelectionExists()
+            return
+        }
+
         if isBuddyUnblockActive() {
             clearShields()
             return
         }
+
         clearShields()
     }
     
@@ -63,6 +70,12 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
     
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
+        // Safety path in case blockNow is toggled right before threshold callback.
+        if consumeBlockNowIfNeeded() {
+            applyShieldsIfSelectionExists()
+            return
+        }
+
         let unblockActive = isBuddyUnblockActive()
 
         if !unblockActive {
@@ -97,24 +110,33 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         // Handle the warning before the event reaches its threshold.
     }
 
-    private func clearShields() {
+    func clearShields() {
         alertStore.shield.applications = nil
         alertStore.shield.applicationCategories = nil
         alertStore.shield.webDomains = nil
     }
 
-    private func applyShieldsIfSelectionExists() {
+    func applyShieldsIfSelectionExists() {
         guard let selection = decodeSelection() else { return }
         alertStore.shield.applications = selection.applicationTokens.isEmpty ? nil : selection.applicationTokens
         alertStore.shield.applicationCategories = selection.categoryTokens.isEmpty ? nil : .specific(selection.categoryTokens)
         alertStore.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : selection.webDomainTokens
     }
 
-    private func isBuddyUnblockActive() -> Bool {
+    func isBuddyUnblockActive() -> Bool {
         defaults?.bool(forKey: DefaultsKey.buddyUnblockActive) == true
     }
 
-    private func setBuddyUnblockActive(_ value: Bool) {
+    func setBuddyUnblockActive(_ value: Bool) {
         defaults?.set(value, forKey: DefaultsKey.buddyUnblockActive)
+    }
+
+    func consumeBlockNowIfNeeded() -> Bool {
+        guard defaults?.bool(forKey: DefaultsKey.blockNow) == true else {
+            return false
+        }
+
+        defaults?.set(false, forKey: DefaultsKey.blockNow)
+        return true
     }
 }

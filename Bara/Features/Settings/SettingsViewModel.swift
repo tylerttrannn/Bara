@@ -7,6 +7,7 @@ final class SettingsViewModel: ObservableObject {
 
     private let service: PetStateProviding
     private let scheduleLimits = ScheduleLimits()
+    private let defaults = AppGroupDefaults.sharedDefaults
 
     init(service: PetStateProviding) {
         self.service = service
@@ -27,6 +28,11 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func startActivityLimitTest() {
+        scheduleLimits.startActivity()
+    }
+
+    func triggerBlockNow() {
+        defaults.set(true, forKey: AppGroupDefaults.blockNow)
         scheduleLimits.startActivity()
     }
 }

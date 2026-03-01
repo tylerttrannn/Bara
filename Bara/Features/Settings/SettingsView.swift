@@ -56,9 +56,9 @@ struct SettingsView: View {
                         .tint(AppColors.accentGreen)
                     }
 
-                    SettingRowView(title: "Block Apps Instantly", subtitle: "Placeholder UI only (logic coming next)") {
+                    SettingRowView(title: "Block Apps Instantly", subtitle: "Runs the same start activity flow") {
                         Button("Block now") {
-                            // Placeholder only. Logic to be wired next.
+                            viewModel.triggerBlockNow()
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.red)
