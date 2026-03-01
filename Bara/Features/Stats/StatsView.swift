@@ -4,6 +4,8 @@ import _DeviceActivity_SwiftUI
 
 struct StatsView: View {
     @StateObject private var viewModel: StatsViewModel
+    @State private var showReportSplash = true
+    @State private var splashTask: Task<Void, Never>?
 
     init(service: PetStateProviding) {
         _viewModel = StateObject(wrappedValue: StatsViewModel(service: service))
@@ -49,7 +51,20 @@ struct StatsView: View {
                         }
                         .padding(Spacing.medium)
                     }
+                    .overlay {
+                        if showReportSplash {
+                            StatsLoadingSplashOverlayView()
+                                .transition(.opacity)
+                        }
+                    }
+                    .onAppear {
+                        showStatsSplash()
+                    }
+                    .onDisappear {
+                        splashTask?.cancel()
+                    }
                     .refreshable {
+                        showStatsSplash()
                         await viewModel.load()
                     }
                 }
@@ -100,10 +115,59 @@ struct StatsView: View {
 
         return DeviceActivityFilter(segment: .daily(during: interval))
     }
+
+    private func showStatsSplash() {
+        splashTask?.cancel()
+        showReportSplash = true
+
+        splashTask = Task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showReportSplash = false
+                }
+            }
+        }
+    }
 }
 
 #Preview {
     PreviewContainer {
         StatsView(service: MockPetStateService(settings: SettingsState(isOnboardingCompleted: true, notificationsEnabled: true, permissionGranted: true)))
+    }
+}
+
+private struct StatsLoadingSplashOverlayView: View {
+    @State private var animate = false
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [AppColors.sandBackground, Color.white],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: Spacing.medium) {
+                Image("very_happy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 170, height: 170)
+                    .scaleEffect(animate ? 1.03 : 0.97)
+                    .offset(y: animate ? -4 : 4)
+                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: animate)
+
+                Text("Loading your stats...")
+                    .font(AppTypography.subtitle)
+
+                ProgressView()
+                    .tint(AppColors.accentTeal)
+            }
+            .padding(.horizontal, Spacing.large)
+        }
+        .allowsHitTesting(true)
+        .onAppear { animate = true }
     }
 }
