@@ -344,6 +344,49 @@ final class DashboardViewModel: ObservableObject {
     private func syncScoreCache(with profile: BuddyProfile) {
         AppGroupDefaults.setCachedHealthValue(profile.health, defaults: defaults)
         AppGroupDefaults.setCachedPointsValue(profile.points, defaults: defaults)
+        updateLoadedSnapshot(for: profile.health)
+    }
+
+    private func updateLoadedSnapshot(for health: Int) {
+        guard case .loaded(let snapshot) = state else { return }
+
+        let hp = max(0, min(Double(health), 100))
+        let mood = moodForHP(hp)
+        state = .loaded(
+            PetSnapshot(
+                hp: hp,
+                mood: mood,
+                distractingMinutesToday: snapshot.distractingMinutesToday,
+                moodDescription: moodDescription(for: mood),
+                updatedAt: Date()
+            )
+        )
+    }
+
+    private func moodForHP(_ hp: Double) -> MoodState {
+        switch hp {
+        case 80...:
+            return .happy
+        case 50..<80:
+            return .neutral
+        case 20..<50:
+            return .sad
+        default:
+            return .distressed
+        }
+    }
+
+    private func moodDescription(for mood: MoodState) -> String {
+        switch mood {
+        case .happy:
+            return "Bara is thriving. Keep this momentum going."
+        case .neutral:
+            return "Bara is doing okay. A little more focus helps."
+        case .sad:
+            return "Bara is feeling drained. Try reducing distractions."
+        case .distressed:
+            return "Bara is struggling. Time for a focus reset."
+        }
     }
 
     private func endOfDay(from date: Date) -> Date {

@@ -23,7 +23,7 @@ struct IncomingBuddyRequestCardView: View {
             }
 
             if let request {
-                Text("\(request.requesterDisplayName ?? "Your friend") asked for \(request.minutesRequested) min")
+                Text("\(requesterName(for: request)) asked for \(request.minutesRequested) min")
                     .font(AppTypography.body)
 
                 if let note = request.note, !note.isEmpty {
@@ -82,5 +82,11 @@ struct IncomingBuddyRequestCardView: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func requesterName(for request: BorrowRequest) -> String {
+        let raw = (request.requesterDisplayName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return "Your friend" }
+        return raw.caseInsensitiveCompare("you") == .orderedSame ? "Your friend" : raw
     }
 }

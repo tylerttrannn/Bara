@@ -185,7 +185,7 @@ struct StatsMoodCalendarReportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Bara Mood Calendar")
+            Text("Calendar")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
 
             HStack {

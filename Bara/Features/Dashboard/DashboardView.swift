@@ -12,6 +12,7 @@ struct DashboardView: View {
     @StateObject private var viewModel: DashboardViewModel
     @State private var lastResolveAction: ResolveAction?
     @State private var showUnpairConfirmation = false
+    @State private var showHealthPenaltyCue = false
     @Environment(\.presentToast) private var presentToast
 
     init(
@@ -43,7 +44,11 @@ struct DashboardView: View {
                         VStack(spacing: Spacing.small) {
                             PetHeroCardView(mood: snapshot.mood, description: snapshot.moodDescription)
 
-                            HPProgressCardView(hp: snapshot.hp)
+                            HPProgressCardView(
+                                hp: snapshot.hp,
+                                showPenaltyEmphasis: showHealthPenaltyCue,
+                                penaltyAmount: AppGroupDefaults.borrowApprovalRequesterHealthPenalty
+                            )
 
                             DeviceActivityReport(.totalActivity, filter: todayActivityFilter)
                                 .frame(height: 120, alignment: .top)
@@ -136,13 +141,14 @@ struct DashboardView: View {
         }
         .onChange(of: viewModel.newlyApprovedOutgoingRequest) { _, approvedRequest in
             guard let approvedRequest else { return }
-            Haptics.notify(.success)
+            Haptics.notify(.warning)
             presentToast(
                 ToastFactory.make(
                     kind: .success,
-                    message: "Friend approved \(approvedRequest.minutesRequested) extra minutes."
+                    message: "Friend approved \(approvedRequest.minutesRequested) extra minutes. Health -\(AppGroupDefaults.borrowApprovalRequesterHealthPenalty)."
                 )
             )
+            triggerHealthPenaltyCue()
         }
         .confirmationDialog(
             "Remove friend?",
@@ -249,5 +255,15 @@ struct DashboardView: View {
         return DeviceActivityFilter(
             segment: .daily(during: dayInterval)
         )
+    }
+
+    private func triggerHealthPenaltyCue() {
+        showHealthPenaltyCue = false
+        DispatchQueue.main.async {
+            showHealthPenaltyCue = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            showHealthPenaltyCue = false
+        }
     }
 }

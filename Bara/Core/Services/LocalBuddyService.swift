@@ -217,7 +217,10 @@ final class LocalBuddyService: BuddyProviding {
             if request.requesterID == meUpdated.id {
                 let nextPoints = max(0, meUpdated.points - AppGroupDefaults.borrowApprovalRequesterPointsPenalty)
                 meUpdated.points = nextPoints
+                let nextHealth = max(0, meUpdated.health - AppGroupDefaults.borrowApprovalRequesterHealthPenalty)
+                meUpdated.health = nextHealth
                 saveProfile(meUpdated)
+                AppGroupDefaults.setCachedHealthValue(nextHealth, defaults: defaults)
                 AppGroupDefaults.setCachedPointsValue(nextPoints, defaults: defaults)
             }
         }

@@ -30,6 +30,7 @@ enum AppGroupDefaults {
     static let blockNow = "blocknow"
     static let unblockNow = "unblocknow"
     static let borrowApprovalRequesterPointsPenalty = 15
+    static let borrowApprovalRequesterHealthPenalty = 15
     static let borrowApprovalBuddyPointsReward = 10
 
     static let supabaseURL = "bara.supabase.url"

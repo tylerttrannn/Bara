@@ -27,13 +27,8 @@ struct PetHeroCardView: View {
 
     @ViewBuilder
     private var moodVisual: some View {
-        if mood == .happy, UIImage(named: "very_happy") != nil {
-            Image("very_happy")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 180, height: 180)
-        } else if mood == .neutral, UIImage(named: "neutral") != nil {
-            Image("neutral")
+        if let assetName = moodAssetName {
+            Image(assetName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 180, height: 180)
@@ -43,5 +38,21 @@ struct PetHeroCardView: View {
                 .foregroundStyle(mood.tint)
         }
     }
-}
 
+    private var moodAssetName: String? {
+        let candidates: [String]
+
+        switch mood {
+        case .happy:
+            candidates = ["very_happy", "happy"]
+        case .neutral:
+            candidates = ["neutral"]
+        case .sad:
+            candidates = ["sad"]
+        case .distressed:
+            candidates = ["sad", "distressed"]
+        }
+
+        return candidates.first(where: { UIImage(named: $0) != nil })
+    }
+}
