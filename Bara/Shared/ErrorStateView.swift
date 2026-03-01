@@ -15,7 +15,7 @@ struct ErrorStateView: View {
                 .multilineTextAlignment(.center)
             Button(buttonTitle, action: onRetry)
                 .buttonStyle(.borderedProminent)
-                .tint(AppColors.accentTeal)
+                .tint(AppColors.accentGreen)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(Spacing.large)

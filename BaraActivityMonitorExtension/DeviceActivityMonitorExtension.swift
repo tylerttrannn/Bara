@@ -22,6 +22,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         static let selection = "bara"
         static let buddyUnblockActive = "bara.buddy.unblock.active"
         static let blockNow = "blocknow"
+        static let unblockNow = "unblocknow"
     }
     
     let defaults = UserDefaults(suiteName: "group.com.Bara.appblocker")
@@ -47,6 +48,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
 
     override func intervalDidStart(for activity: DeviceActivityName) {
+        if consumeUnblockNowIfNeeded() {
+            clearShields()
+            return
+        }
+
         // One-shot manual block trigger from app-side Settings button.
         if consumeBlockNowIfNeeded() {
             applyShieldsIfSelectionExists()
@@ -70,6 +76,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
     
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
+        if consumeUnblockNowIfNeeded() {
+            clearShields()
+            return
+        }
+
         // Safety path in case blockNow is toggled right before threshold callback.
         if consumeBlockNowIfNeeded() {
             applyShieldsIfSelectionExists()
@@ -137,6 +148,15 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
 
         defaults?.set(false, forKey: DefaultsKey.blockNow)
+        return true
+    }
+
+    func consumeUnblockNowIfNeeded() -> Bool {
+        guard defaults?.bool(forKey: DefaultsKey.unblockNow) == true else {
+            return false
+        }
+
+        defaults?.set(false, forKey: DefaultsKey.unblockNow)
         return true
     }
 }

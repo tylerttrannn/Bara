@@ -70,7 +70,7 @@ struct OnboardingFlowView: View {
                     showScreenTimePermissionInfo = true
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(AppColors.accentTeal)
+                .tint(AppColors.accentGreen)
                 .opacity(viewModel.pageIndex == 1 ? 1 : 0)
                 .disabled(viewModel.pageIndex != 1)
                 .frame(height: 44)
@@ -204,7 +204,7 @@ private struct ScreenTimePermissionInfoView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(AppColors.accentTeal)
+                        .tint(AppColors.accentGreen)
                         .font(AppTypography.body)
                         .frame(maxWidth: .infinity)
                     }

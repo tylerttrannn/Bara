@@ -22,6 +22,7 @@ enum AppGroupDefaults {
     static let borrowAllowanceConsumed = "bara.borrow.allowance.consumed"
     static let buddyUnblockActive = "bara.buddy.unblock.active"
     static let blockNow = "blocknow"
+    static let unblockNow = "unblocknow"
     static let borrowApprovalRequesterPointsPenalty = 15
     static let borrowApprovalBuddyPointsReward = 10
 

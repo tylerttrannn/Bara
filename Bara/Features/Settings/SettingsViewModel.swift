@@ -32,7 +32,14 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func triggerBlockNow() {
+        defaults.set(false, forKey: AppGroupDefaults.unblockNow)
         defaults.set(true, forKey: AppGroupDefaults.blockNow)
+        scheduleLimits.startActivity()
+    }
+
+    func triggerUnblockNow() {
+        defaults.set(false, forKey: AppGroupDefaults.blockNow)
+        defaults.set(true, forKey: AppGroupDefaults.unblockNow)
         scheduleLimits.startActivity()
     }
 }

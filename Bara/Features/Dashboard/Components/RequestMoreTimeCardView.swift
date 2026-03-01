@@ -111,7 +111,7 @@ struct RequestMoreTimeCardView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(AppColors.accentTeal)
+            .tint(AppColors.accentGreen)
             .disabled(disabledReason != nil || submitState.isLoading)
         }
         .padding(Spacing.medium)
