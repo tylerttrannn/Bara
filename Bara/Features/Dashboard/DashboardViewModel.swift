@@ -62,6 +62,7 @@ final class DashboardViewModel: ObservableObject {
     private let service: PetStateProviding
     private let buddyService: BuddyProviding
     private let allowanceStore: BorrowAllowanceProviding
+    private let scheduleLimits: ScheduleLimits
     private let defaults: UserDefaults
 
     private var incomingObserverTask: Task<Void, Never>?
@@ -72,12 +73,14 @@ final class DashboardViewModel: ObservableObject {
         service: PetStateProviding,
         buddyService: BuddyProviding = BuddyServiceFactory.makeDefault(),
         allowanceStore: BorrowAllowanceProviding = AppGroupBorrowAllowanceStore(),
+        scheduleLimits: ScheduleLimits? = nil,
         defaults: UserDefaults = AppGroupDefaults.sharedDefaults
     ) {
         self.service = service
         self.buddyService = buddyService
         self.allowanceStore = allowanceStore
         self.defaults = defaults
+        self.scheduleLimits = scheduleLimits ?? ScheduleLimits(defaults: defaults, allowanceStore: allowanceStore)
     }
 
     deinit {
@@ -270,6 +273,7 @@ final class DashboardViewModel: ObservableObject {
 
         allowanceStore.storeAllowance(allowance)
         defaults.set(latestOutgoingRequest.id.uuidString, forKey: AppGroupDefaults.lastAppliedBorrowRequestID)
+        scheduleLimits.activateBorrowAllowanceIfAvailable()
     }
 
     private func recalculateRequestDisabledReason() {

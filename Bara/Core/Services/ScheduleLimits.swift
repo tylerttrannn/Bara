@@ -8,8 +8,16 @@
 import Foundation
 import DeviceActivity
 import FamilyControls
+import ManagedSettings
 
 class ScheduleLimits {
+    private enum Names {
+        static let baseActivity = DeviceActivityName("baraLimit")
+        static let baseEvent = DeviceActivityEvent.Name("baraLimit")
+        static let borrowActivity = DeviceActivityName("baraBorrowLimit")
+        static let borrowEvent = DeviceActivityEvent.Name("baraBorrowLimit")
+    }
+
     private let defaults: UserDefaults
     private let allowanceStore: BorrowAllowanceProviding
 
@@ -23,15 +31,11 @@ class ScheduleLimits {
 
     func startActivity() {
         let monitor = DeviceActivityCenter()
-        let activityName = DeviceActivityName("baraLimit")
-        let eventName = DeviceActivityEvent.Name("baraLimit")
 
         let baseThreshold = max(defaults.integer(forKey: AppGroupDefaults.thresholdMinutes), 1)
-        let bonusMinutes = allowanceStore.activeAllowance(now: Date())?.minutes ?? 0
-        let effectiveThreshold = baseThreshold + bonusMinutes
+        let effectiveThreshold = baseThreshold
 
-        let thresholdHours = effectiveThreshold / 60
-        let thresholdRemainderMinutes = effectiveThreshold % 60
+        let threshold = thresholdComponents(for: effectiveThreshold)
 
         let schedule = DeviceActivitySchedule(
             intervalStart: DateComponents(hour: 0, minute: 0),
@@ -41,23 +45,77 @@ class ScheduleLimits {
 
         let event = DeviceActivityEvent(
             applications: AppSelectionModel.getSelection().applicationTokens,
-            threshold: DateComponents(hour: thresholdHours, minute: thresholdRemainderMinutes)
+            threshold: threshold
         )
 
         do {
             try monitor.startMonitoring(
-                activityName,
+                Names.baseActivity,
                 during: schedule,
-                events: [eventName: event]
+                events: [Names.baseEvent: event]
             )
 
-            if bonusMinutes > 0 {
-                allowanceStore.consumeAllowance()
-            }
-
-            print("activity started with threshold \(effectiveThreshold)m (base \(baseThreshold)m + bonus \(bonusMinutes)m)")
+            print("activity started with base threshold \(baseThreshold)m")
         } catch {
             print("error starting activity \(error.localizedDescription)")
         }
+    }
+
+    func activateBorrowAllowanceIfAvailable() {
+        guard let allowance = allowanceStore.activeAllowance(now: Date()) else {
+            return
+        }
+
+        activateBorrowAllowance(minutes: allowance.minutes)
+    }
+
+    @discardableResult
+    func activateBorrowAllowance(minutes: Int) -> Bool {
+        let bonusMinutes = max(minutes, 1)
+        let monitor = DeviceActivityCenter()
+
+        var start = Calendar.current.dateComponents([.hour, .minute], from: Date())
+        start.second = 0
+
+        let schedule = DeviceActivitySchedule(
+            intervalStart: start,
+            intervalEnd: DateComponents(hour: 23, minute: 59, second: 59),
+            repeats: false
+        )
+
+        let event = DeviceActivityEvent(
+            applications: AppSelectionModel.getSelection().applicationTokens,
+            threshold: thresholdComponents(for: bonusMinutes)
+        )
+
+        do {
+            clearAllShields()
+
+            try monitor.startMonitoring(
+                Names.borrowActivity,
+                during: schedule,
+                events: [Names.borrowEvent: event]
+            )
+
+            allowanceStore.consumeAllowance()
+            print("borrow allowance activated for \(bonusMinutes)m")
+            return true
+        } catch {
+            print("error activating borrow allowance \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    private func thresholdComponents(for minutes: Int) -> DateComponents {
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        return DateComponents(hour: hours, minute: remainder)
+    }
+
+    private func clearAllShields() {
+        let store = ManagedSettingsStore()
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomains = nil
     }
 }

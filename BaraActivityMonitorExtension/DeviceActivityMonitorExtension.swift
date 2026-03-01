@@ -38,17 +38,12 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
 
     override func intervalDidStart(for activity: DeviceActivityName) {        
-        if let selection = decodeSelection() {
-           alertStore.shield.applications = selection.applicationTokens
-           alertStore.shield.applicationCategories = .specific(selection.categoryTokens)
-        }
-        // Handle the start of the interval.
+        clearShields()
     }
     
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
-        
-        // Handle the end of the interval.
+        clearShields()
     }
     
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
@@ -56,6 +51,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         if let selection = decodeSelection() {
            alertStore.shield.applications = selection.applicationTokens
            alertStore.shield.applicationCategories = .specific(selection.categoryTokens)
+           alertStore.shield.webDomains = selection.webDomainTokens
         }
                 
     }
@@ -76,5 +72,11 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.eventWillReachThresholdWarning(event, activity: activity)
         
         // Handle the warning before the event reaches its threshold.
+    }
+
+    private func clearShields() {
+        alertStore.shield.applications = nil
+        alertStore.shield.applicationCategories = nil
+        alertStore.shield.webDomains = nil
     }
 }
